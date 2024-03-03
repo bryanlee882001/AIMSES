@@ -1,0 +1,191 @@
+
+.spectraRequirementsContainer {
+    display: block;
+    position: relative;
+    padding-left: 30px;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: white;
+}
+
+.spectraRequirementsContainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 5px;
+    background-color: #eee;
+}
+
+.spectraRequirementsContainer:hover input ~ .checkmark {
+    background-color: rgb(255,255,255);
+}
+
+.spectraRequirementsContainer input:checked ~ .checkmark {
+    background-color: rgb(255,255,255,0.4);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.spectraRequirementsContainer input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.spectraRequirementsContainer .checkmark:after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.spectraGenerationRequirementContainer {
+    border: 1px solid white;
+    border-radius: 20px;
+    padding: 50px;
+    left: 50%;
+    width: 800px; 
+    margin-top: 50px;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+
+.spectraGenerationRequirementCategory {
+    border: 1px solid white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+
+    display: flex;
+    flex-wrap: wrap; 
+    align-items: center;
+}
+
+
+.spectraControlContainer {
+    margin-bottom: 30px;
+    margin-top: 30px;
+    margin-left: 30px;
+}
+
+
+.generateSpectraButton{
+    height: 50px;
+    width: 425px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-bottom: 15px;
+    background-color: rgb(255,255,255,0.2);
+    color: white;
+    font-size: 15px;
+    border: 1px solid white;
+    border-radius: 10px;
+    margin-right: 30px;
+}
+
+
+.generateSpectraButton:hover{
+    border: 2px solid white;
+}
+
+
+.generateSpectraButton:focus{
+    border: 2px solid white;
+    outline: none;
+    background-color: rgb(255, 255, 255, 0.3);   
+}
+
+
+.clearFiltersButton {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 50px;
+    width: 425px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-bottom: 15px;
+    font-size: 15px;
+    border: 1px solid white;
+    color: white;
+    background-color: black;
+    border-radius: 10px;
+    margin-right: 30px;
+}
+
+.clearFiltersButton:hover{
+    border: 2px solid white;
+}
+
+
+.clearFiltersButton:focus{
+    border: 2px solid white;
+    outline: none;
+    background-color: rgb(255, 255, 255, 0.3);   
+}
+
+
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    padding-top: 100px; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.4); 
+  }
+  
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
