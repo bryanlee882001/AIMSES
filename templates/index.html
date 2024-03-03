@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/filters.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/spectra.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/selection.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/modal.css') }}">
+
+        <link rel="stylesheet" href="css/timePicker.css">
+        <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="js/jquery-timepicker.js"></script>
+        
+        <script src="{{ url_for('static', filename='scripts/scripts.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/charts.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/filters.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/modal.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+
+        <title>AIMSES</title>
+    </head>
+    <body>
+
+        <!-- Website Title -->
+        <div class ="title">
+            <h1>AIMSES</h1>
+            <p>Auroral Ionosopheric Magnetospheric Statistical Electron Spectra</p>
+        </div>
+
+
+        <!-- Choose Filters -->
+        <p style="margin-left: -650px; margin-bottom: -20px; margin-top: 30px; font-weight: 900;">STEP 1: Select Filtering Criteria</p>
+        <div class = "selectionFrame"> 
+            <div class = "selectionCategory" id="location">
+                <h3>Location</h3>
+                <div class="selectionCategoryContainer">
+                    <button class="selectionButton" onclick="toggleVisibility('filter_mlt')">MLT</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_ilat')">ILAT</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_alt')">ALT</button>
+                </div>
+            </div>
+            <div class = "selectionCategory" id="ionosphericConditions">
+                <h3>Ionospheric Conditions</h3>
+                <div class="selectionCategoryContainer">
+                    <button class="selectionButton" onclick="toggleVisibility('filter_sza')">SZA</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_f107')">F10.7</button>
+                </div>
+            </div>
+            <div class = "selectionCategory" id="magnetosphericConditions">
+                <h3>Magnetospheric Conditions</h3>
+                <div class="selectionCategoryContainer">
+                    <button class="selectionButton" onclick="toggleVisibility('filter_eflux')">EFLUX</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_nflux')">NFLUX</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_conjugate_sza')">CONJUGATE SZA</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_kp')">KP</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_ae')">AE</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_dst')">DST</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_newell_flux')">NEWELL FLUX</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_lca')">LOST CONE ANGLE</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_mechs')">MECHANISMS</button>  
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Select Values for Chosen Filters -->
+        <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 2: Select Values for Selected Filters</p>
+        <div class ="filterFrame">
+                
+            <!-- MLT Filter  -->
+            <div class="filterContainer" id="filter_mlt">
+                <div class="filterTitle">MLT</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range:</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_mlt')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Lesser Than" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Greater Than" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ILAT Filter  -->
+            <div class="filterContainer" id="filter_ilat">
+                <div class="filterTitle">ILAT</div>
+                <!-- <span class="close" onclick="toggleVisibility('filter_ilat')">&times;</span> -->
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range:</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_ilat')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
+                <div> 
+                    <label id="hemisphereLabel" for="hemisphereSelect" style="display:block;">Hemisphere</label>
+                    <select id="hemisphereSelect" onchange="checkSelect('hemisphereSelect')">
+                        <option value="" disabled selected>Select a Hemisphere</option>
+                        <option value="northernhemisphere">Northern Hemisphere</option>
+                        <option value="southernhemisphere">Southern Hemisphere</option>
+                        <option value="either">Either</option>
+                    </select>
+                </div>
+                <div id="error_message_hemisphere" class="error_message" style="display: none;"></div>
+            </div>
+
+            <!-- ALT Filter  -->
+            <div class="filterContainer" id="filter_alt">
+                <div class="filterTitle">ALT</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_alt')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SZA Filter  -->
+            <div class="filterContainer" id="filter_sza">
+                <div class="filterTitle">SZA</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_sza')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- F10.7 Filter -->
+            <div class="filterContainer" id="filter_f107">
+                <div class="filterTitle">F10.7</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_f107')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- EFLUX Filter -->
+            <div class="filterContainer" id="filter_eflux">
+                <div class="filterTitle">EFLUX</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_eflux')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFLUX Filter -->
+            <div class="filterContainer" id="filter_nflux">
+                <div class="filterTitle">NFLUX</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_nflux')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONJUGATE SZA Filter -->
+            <div class="filterContainer" id="filter_conjugate_sza">
+                <div class="filterTitle">CONJUGATE SZA</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_conjugate_sza')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- KP Filter -->
+            <div class="filterContainer" id="filter_kp">
+                <div class="filterTitle">KP</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_kp')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- AE Filter -->
+            <div class="filterContainer" id="filter_ae">
+                <div class="filterTitle">AE</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_ae')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- DST Filter -->
+            <div class="filterContainer" id="filter_dst">
+                <div class="filterTitle">DST</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_dst')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEWELL FLUX Filter -->
+            <div class="filterContainer" id="filter_newell_flux">
+                <div class="filterTitle">NEWELL FLUX</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_newell_flux')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOST CONE ANGLE (LCA) Filter -->
+            <div class="filterContainer" id="filter_lca">
+                <div class="filterTitle">Lost Cone Angle</div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_lca')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MECH Filter  -->
+            <div class="filterContainer" id="filter_mechs">
+                <div class="filterTitle">Mechanisms</div>
+                <div class="filterGrid">
+                    <div>
+                        <label class="spectraRequirementsContainer">QS only 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">QS Dominant 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Alf Only 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Alf Dominant
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Wave Scattering Only 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Wave Scattering Dominant
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">QS + Alf
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">QS + Wave Scattering
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div> 
+                        <label class="spectraRequirementsContainer">Alf + Wave Scattering
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Alf + Wave Scattering + QS
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Any QS
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Any Alf 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Any Wave Scattering  
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Weak 
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="spectraRequirementsContainer">Any Intense
+                            <input type="radio" name="mechs">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>  
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Spectra Generation Requirements -->
+        <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 3: Spectra Generation Requirements</p>
+        <div class ="spectraGenerationRequirementContainer">
+
+            <!-- Statistics -->
+            <div class="spectraGenerationRequirementCategory" id="Statistics">
+                <div class = "filterTitle">Statistics</div>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Mean
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">+1σ
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">-1σ
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Median 
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">25% 
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">75% 
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+
+            <!-- Spectra -->
+            <div class="spectraGenerationRequirementCategory" id="Spectra">
+                <div class = "filterTitle">Spectra</div>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Downward
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Upward 
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Mirroring 
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+
+            <!-- Normalization  -->
+            <div class="spectraGenerationRequirementCategory" id="Normalization">
+                <div class = "filterTitle">Normalization</div>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Raw
+                    <input type="radio" checked="checked" name="normalization">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Energy Flux 
+                    <input type="radio" name="normalization">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Number Flux  
+                    <input type="radio" name="normalization">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+
+            <!-- Mission -->
+            <div class="spectraGenerationRequirementCategory" id="Mission">
+                <div class = "filterTitle">Mission</div>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Early Mission  
+                    <input type="radio" checked="checked" name="mission">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Late Mission
+                    <input type="radio" name="mission">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="spectraRequirementsContainer" style="margin-top:10px;">Both 
+                    <input type="radio" name="mission">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+        </div>
+
+        <br/>
+
+        <!-- Clear Filters and Generate Spectra Buttons -->
+        <div class="spectraControlContainer">
+            <button id="clearFilters" class="clearFiltersButton" onclick="clearAllFilters()">Clear Filters</button>
+            <button id="generateSpectra" class="generateSpectraButton" onclick="generateSpectra()">Generate Spectra</button>
+        </div>
+        
+        <!-- Spectra Panel -->
+        <div id="spectraPanel" class="modal">
+            <div class="spectraPanelContiner">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Spectra</h2>
+                <div id="modalContent" class="modalContent"></div>
+                <!-- <canvas id="myChart" style="width:80%;max-width:600px; max-height:1000px;"></canvas>   -->
+        </div>
+
+
+        <!-- <script>
+            // Get The Array here to display graph:
+            const xValues = [50,60,70,80,90,100,110,120,130,140,150];
+            const yValues = [7,8,8,9,9,9,10,11,14,14,15];
+            
+            const testChart = document.getElementById('myChart').getContext('2d');
+            new Chart(testChart, {
+                type: "line",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                    fill: false,
+                    lineTension: 0,
+                    backgroundColor: "rgba(255,255,255,1.0)",
+                    borderColor: "rgba(255,255,255,0.2)",
+                    data: yValues
+                    }]
+                },
+                options: {
+                    legend: {display: false},
+                    scales: {
+                        yAxes: [{
+                            // ticks: {min: 6, max:16},
+                            // display: true,
+                                gridLines: {
+                                    color: '#656565',
+                                    lineWidth: 0.3
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Y-Axis'
+                                }
+                            }],
+                        xAxes: [{
+                            // display: true,
+                            gridLines: {
+                                color: '#656565',
+                                lineWidth: 0.3
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'X-Axis'
+                            }
+                        }]
+                    }
+                }
+            });
+            
+        </script> -->
+
+        <div class="background"></div>
+    </body>
+</html>
