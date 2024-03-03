@@ -1,0 +1,52 @@
+
+.selectionFrame{
+    left: 50%;
+    width: 800px; 
+    min-height: 200px; 
+    margin-top: 50px;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding: 50px;
+    font-size: 100px;
+    display: block;
+}
+
+
+.selectionCategory{
+    margin-top: 10px;
+    display: block; 
+    font-size: 15px;
+}
+
+
+.selectionButton{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 40px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-bottom: 15px;
+    background-color: black;
+    color: white;
+    border-radius: 5px;
+    border: 2px solid grey;
+    margin-right: 30px;
+}
+
+
+.selectionButton:hover{
+    border: 2px solid white;
+}
+
+
+.selectionButton.active{
+    border: 2px solid white;
+    background-color: rgb(255, 255, 255, 0.3);    
+}
+
+
+.selectionButton:focus,
+.selectionButton:active {
+    border: 2px solid white;
+}
