@@ -26,6 +26,20 @@ function toggleVisibility(containerID) {
             });
 
             hideLabels([container.querySelector("#minRangeLabel"), container.querySelector("#maxRangeLabel"), container.querySelector("#lesserThanLabel"), container.querySelector("#greaterThanLabel")]);
+
+            // Clear Error Messages Before Switching Fields
+            var errorMessages = container.querySelectorAll('.error_message');
+            errorMessages.forEach(function(errorMessage) {
+                    errorMessage.style.display = "none";
+            });
+
+            // Clear Red-colored borders Before Switching Fields (which are used to indicate error)
+            var inputFields = container.querySelectorAll('input, select');
+            inputFields.forEach(function(field) {
+                if (field.style.borderColor = 'rgb(222,82,82)') {
+                    field.style.borderColor = 'grey';
+                }
+            }); 
         }
     }   
 
@@ -142,7 +156,6 @@ function toggleFields(containerId) {
 
     // If selected value is between, lesser than, or greater than 
     if (select.value === "between") {
-        checkSelect(select.id);
         betweenFields.forEach(function (field) {
             field.style.display = "block";            
         });
@@ -155,7 +168,6 @@ function toggleFields(containerId) {
         ClearAllInputsInContainerBasedOnDisplay(container);
 
     } else if (select.value === "lesserThan") {
-        checkSelect(select.id);
         betweenFields.forEach(function (field) {
             field.style.display = "none";
         });
@@ -168,7 +180,6 @@ function toggleFields(containerId) {
         ClearAllInputsInContainerBasedOnDisplay(container);
 
     } else if (select.value === "greaterThan") {
-        checkSelect(select.id);
         betweenFields.forEach(function (field) {
             field.style.display = "none";
         });

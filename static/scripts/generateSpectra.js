@@ -102,7 +102,7 @@ function generateSpectra() {
 
 
     // Display data in the modal if there is any input or selection
-    if (inputData.trim() !== '' && validateFilter()) {
+    if (inputData.trim() !== '' && validateFilters()) {
         // var modalContent = document.getElementById('modalContent');
         modalContent.innerHTML = inputData;
 
@@ -160,11 +160,10 @@ function clearErrors(container) {
 }
 
 
-// A function that calls all inputValidation functions
-function validateFilter() {
+function validateNonEmptyNumericInputs(containerId) {
 
     // Get Container and Clear Error Messages before validating again
-    var container = document.getElementById("filter_ilat");
+    var container = document.getElementById(containerId);
     clearErrors(container); 
 
     var isTrue = true; 
@@ -195,7 +194,6 @@ function validateFilter() {
         hemisphereSelect.style.borderColor = 'rgb(222,82,82)';
         isTrue = false;
     }
-
 
     // Check Text Inputs Based on rangeSelect
     var errorMessage = container.querySelector("#error_message_range");
@@ -245,9 +243,277 @@ function validateFilter() {
             isTrue = false;
         }
     }
-    
 
-    // container.querySelectorAll('select').forEach(function (field) {  
+    return isTrue;
+}
+
+
+// A function that calls all inputValidation functions
+function validateFilters() {    
+    
+    var isTrue;
+
+    // Check MLT Filter
+
+    // Check ILAT Filter 
+    isTrue = validateILAT("filter_ilat");
+
+    // Check ALT Filter
+    // isTrue = validateMLT("filter_mlt");
+
+    return isTrue;
+}
+
+
+function validateMLT(containerId) {
+
+    var isTrue = true;
+    var container = document.getElementById(containerId);
+    var rangeSelect = container.querySelector('#rangeSelect');
+    var errorMessage = container.querySelector("#error_message_range");
+
+    // Check 
+
+}
+
+
+// A function that validates ILAT inputs
+function validateILAT(containerId) {
+    
+    // Check if inputs are numeric and not empty
+    if (!validateNonEmptyNumericInputs(containerId)) {
+        return false;
+    }
+
+    var isTrue = true;
+    var container = document.getElementById(containerId);
+    var rangeSelect = container.querySelector('#rangeSelect');
+    var hemisphereSelect = container.querySelector('#hemisphereSelect');
+    var errorMessage = container.querySelector("#error_message_range");
+
+    // Check Text Inputs Based on rangeSelect
+    if (rangeSelect.value === 'between') {
+        // Get Min and Max Range
+        var minRange = container.querySelector('#minRange');
+        var maxRange = container.querySelector('#maxRange');
+
+        var minRangeVal = parseFloat(minRange.value);
+        var maxRangeVal = parseFloat(maxRange.value);
+
+        if (hemisphereSelect.value == 'northernhemisphere') {
+            if (minRangeVal < 0) {
+                errorMessage.innerText = "Nothern Hemisphere: Min Range should be above 0";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (maxRangeVal > 90) {
+                errorMessage.innerText = "Nothern Hemisphere: Max Range should be less than 90";
+                errorMessage.style.display = "block";
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (minRangeVal >= maxRangeVal) {
+                errorMessage.innerText = "Nothern Hemisphere: Max Range cannot be less than or equal to Min Range";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (minRangeVal < 0 && maxRangeVal > 90) {
+                errorMessage.innerText = "Nothern Hemisphere: Min Range should be above 0 and Max Range should be less than 90";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+        } else if (hemisphereSelect.value == 'southernhemisphere') {
+            if (minRangeVal < -90) {
+                errorMessage.innerText = "Southern Hesmiphere: Min Range should be above -90";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (maxRangeVal > 0) {
+                errorMessage.innerText = "Southern Hesmiphere: Max Range should be less than 0";
+                errorMessage.style.display = "block";
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+            if (minRangeVal >= maxRangeVal) {
+                errorMessage.innerText = "Southern Hesmiphere: Max Range cannot be less than or equal to Min Range";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+            if (minRangeVal < -90 && maxRangeVal > 0) {
+                errorMessage.innerText = "Southern Hesmiphere: Min Range should be more than -90 and Max Range should be less than 0";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+        } else if (hemisphereSelect.value == 'either') {
+            if (minRangeVal < 0) {
+                errorMessage.innerText = "Either Hemisphere: Min Range should be above 0";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (maxRangeVal > 90) {
+                errorMessage.innerText = "Either Hemisphere: Max Range should be less than 90";
+                errorMessage.style.display = "block";
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (minRangeVal >= maxRangeVal) {
+                errorMessage.innerText = "Either Hemisphere: Max Range cannot be less than or equal to Min Range";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (minRangeVal < 0 && maxRangeVal > 90) {
+                errorMessage.innerText = "Either Hemisphere: Min Range should be above 0 and Max Range should be less than 90";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (minRangeVal != Math.abs(minRangeVal)) {
+                errorMessage.innerText = "Either Hemisphere: Min Range should be an absolute value";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+            if (maxRangeVal != Math.abs(maxRangeVal)) {
+                errorMessage.innerText = "Either Hemisphere: Max Range should be an absolute value";
+                errorMessage.style.display = "block";
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (minRangeVal != Math.abs(minRangeVal) && maxRangeVal != Math.abs(maxRangeVal)) {
+                errorMessage.innerText = "Either Hemisphere: Both Min and Max Ranges should be absolute values";
+                errorMessage.style.display = "block";
+                minRange.style.borderColor = 'rgb(222,82,82)';
+                maxRange.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+        }
+    } else if (rangeSelect.value === 'lesserThan') {
+        
+        // Get lesserThan value
+        var lesserThan = container.querySelector('#lesserThanValue');
+        var lesserThanVal = parseFloat(lesserThan.value);
+
+        if (hemisphereSelect.value == 'northernhemisphere') {
+            if (lesserThanVal < 0) {
+                errorMessage.innerText = "Nothern Hemisphere: Lesser Than Value should be above 0";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (lesserThanVal > 90) {
+                errorMessage.innerText = "Nothern Hemisphere: Lesser Than Value should be less than 90";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+        } else if (hemisphereSelect.value == 'southernhemisphere') {
+            if (lesserThanVal < -90) {
+                errorMessage.innerText = "Southern Hesmiphere: Lesser Than Value should be above -90";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (lesserThanVal > 0) {
+                errorMessage.innerText = "Southern Hesmiphere: Lesser Than Value should be less than 0";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+        } else if (hemisphereSelect.value == 'either') {
+            if (lesserThanVal < 0) {
+                errorMessage.innerText = "Either Hemisphere: Lesser Than Value should be above 0";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (lesserThanVal > 90) {
+                errorMessage.innerText = "Either Hemisphere: Lesser Than Value should be less than 90";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (lesserThanVal != Math.abs(lesserThanVal)) {
+                errorMessage.innerText = "Either Hemisphere: Lesser Than Value should be an absolute value";
+                errorMessage.style.display = "block";
+                lesserThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+        }
+    } else if (rangeSelect.value === 'greaterThan') {
+
+        // Get lesserThan value
+        var greaterThan = container.querySelector('#greaterThanValue');
+        var greaterThanVal = parseFloat(greaterThan.value);
+
+        if (hemisphereSelect.value == 'northernhemisphere') {
+            if (greaterThanVal < 0) {
+                errorMessage.innerText = "Nothern Hemisphere: Greater Than Value should be above 0";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (greaterThanVal > 90) {
+                errorMessage.innerText = "Nothern Hemisphere: Greater Than Value should be less than 90";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+        } else if (hemisphereSelect.value == 'southernhemisphere') {
+            if (greaterThanVal < -90) {
+                errorMessage.innerText = "Southern Hesmiphere: Greater Than Value should be above -90";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (greaterThanVal > 0) {
+                errorMessage.innerText = "Southern Hesmiphere: Greater Than Value should be less than 0";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+        } else if (hemisphereSelect.value == 'either') {
+            if (greaterThanVal < 0) {
+                errorMessage.innerText = "Either Hemisphere: Greater Than Value should be above 0";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }
+            if (greaterThanVal > 90) {
+                errorMessage.innerText = "Either Hemisphere: Greater Than Value should be less than 90";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            } 
+            if (greaterThanVal != Math.abs(greaterThanVal)) {
+                errorMessage.innerText = "Either Hemisphere: Greater Than Value should be an absolute value";
+                errorMessage.style.display = "block";
+                greaterThan.style.borderColor = 'rgb(222,82,82)';
+                isTrue = false;
+            }  
+        }
+    }
+
+    return isTrue 
+}
+
+
+
+
+   // container.querySelectorAll('select').forEach(function (field) {  
     //     // Check Range Selection
     //     if (field.id == "rangeSelect" && field.options[field.selectedIndex].text == "Select a Range") {
     //         document.getElementById("error_message_range").innerText = "Please select a Range option";
@@ -264,11 +530,4 @@ function validateFilter() {
     //         isTrue = false;
     //     }
     // });
-
-    return isTrue;
-}
-
-
-
-
-
+    //
