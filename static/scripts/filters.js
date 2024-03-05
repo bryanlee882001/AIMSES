@@ -126,11 +126,21 @@ function toggleFields(containerId) {
     var lesserThanLabel = container.querySelector("#lesserThanLabel");
     var greaterThanLabel = container.querySelector("#greaterThanLabel");
 
-    if (select.style.borderColor === 'rgb(222, 82, 82)' && select.selectedIndex !== 0) {
-        select.style.borderColor = 'grey';
-        document.getElementById("error_message_range").style.display = 'none';
-    }
+    // Clear Error Messages Before Switching Fields
+    var errorMessages = container.querySelectorAll('.error_message');
+    errorMessages.forEach(function(errorMessage) {
+            errorMessage.style.display = "none";
+    });
 
+    // Clear Red-colored borders Before Switching Fields (which are used to indicate error)
+    var inputFields = container.querySelectorAll('input, select');
+    inputFields.forEach(function(field) {
+        if (field.style.borderColor = 'rgb(222,82,82)') {
+            field.style.borderColor = 'grey';
+        }
+    }); 
+
+    // If selected value is between, lesser than, or greater than 
     if (select.value === "between") {
         checkSelect(select.id);
         betweenFields.forEach(function (field) {
@@ -140,7 +150,8 @@ function toggleFields(containerId) {
         greaterThanField.style.display = "none";
         showLabels([minRangeLabel, maxRangeLabel]);
         hideLabels([lesserThanLabel, greaterThanLabel]);
-
+        
+        // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
 
     } else if (select.value === "lesserThan") {
@@ -153,6 +164,7 @@ function toggleFields(containerId) {
         showLabels([lesserThanLabel]);
         hideLabels([minRangeLabel, maxRangeLabel, greaterThanLabel]);
 
+        // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
 
     } else if (select.value === "greaterThan") {
@@ -165,6 +177,7 @@ function toggleFields(containerId) {
         showLabels([greaterThanLabel]);
         hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel]);
 
+        // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
 
     } else {
@@ -173,6 +186,7 @@ function toggleFields(containerId) {
         });
         hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel, greaterThanLabel]);
 
+        // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
     }
 }

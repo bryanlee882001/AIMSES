@@ -1,4 +1,5 @@
 
+// Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
     // Function to generate Spectra
     var inputData = '';
@@ -151,7 +152,7 @@ function clearErrors(container) {
     // Clear Red-colored borders (which are used to indicate error)
     var inputFields = container.querySelectorAll('input, select');
     inputFields.forEach(function(field) {
-        if (field.style.borderColor = 'rgb(222,82,82)') {
+        if (field.style.borderColor = 'rgb(222,82,82)' && field.id != "hemisphereLabel") {
             field.style.borderColor = 'grey';
         }
     }); 
@@ -177,33 +178,93 @@ function validateFilter() {
         return isTrue;
     }
 
-    container.querySelectorAll('input, select').forEach(function (field) {  
+    // Check selected value of rangeSelect
+    var rangeSelect = container.querySelector('#rangeSelect');
+    if (rangeSelect.options[rangeSelect.selectedIndex].text == "Select a Range") {
+        document.getElementById("error_message_range").innerText = "Please select a Range option";
+        document.getElementById("error_message_range").style.display = "block";
+        rangeSelect.style.borderColor = 'rgb(222,82,82)';
+        isTrue = false;
+    }
 
-        // Check Range Selection
-        if (field.id == "rangeSelect" && field.options[field.selectedIndex].text == "Select a Range") {
-            document.getElementById("error_message_range").innerText = "Please select a Range option";
+    // Check selected value of hemisphereSelect 
+    var hemisphereSelect = container.querySelector('#hemisphereSelect');
+    if (hemisphereSelect.options[hemisphereSelect.selectedIndex].text == "Select a Hemisphere") {
+        document.getElementById("error_message_hemisphere").innerText = "Please select a Hemisphere option";
+        document.getElementById("error_message_hemisphere").style.display = "block";
+        hemisphereSelect.style.borderColor = 'rgb(222,82,82)';
+        isTrue = false;
+    }
+
+
+    // Check Text Inputs Based on rangeSelect
+    var errorMessage = container.querySelector("#error_message_range");
+    if (rangeSelect.value === 'between') {
+        // Check if minRange and maxRange are filled and are numbers
+        var minRange = container.querySelector('#minRange');
+        var maxRange = container.querySelector('#maxRange');
+
+        if (minRange.value.trim() === '' || isNaN(minRange.value)) {
+            errorMessage.innerText = "Please enter a valid number for Min Range";
+            errorMessage.style.display = "block";
+            minRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+
+        if (maxRange.value.trim() === '' || isNaN(maxRange.value)) {
+            errorMessage.innerText = "Please enter a valid number for Max Range";
+            errorMessage.style.display = "block";
+            maxRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+
+        if ((minRange.value.trim() === '' || isNaN(minRange.value)) && (maxRange.value.trim() === '' || isNaN(maxRange.value))){
+            errorMessage.innerText = "Please enter valid numbers for both Min Range and Max Range ";
+            errorMessage.style.display = "block";
+            maxRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+    } else if (rangeSelect.value === 'lesserThan') {
+        // Check if lesserThanValue is filled and is a number
+        var lesserThanValue = container.querySelector('#lesserThanValue');
+
+        if (lesserThanValue.value.trim() === '' || isNaN(lesserThanValue.value)) {
+            document.getElementById("error_message_range").innerText = "Please enter a valid number for Lesser Than Range";
             document.getElementById("error_message_range").style.display = "block";
-
-            // Set Border Color to Red
-            field.style.borderColor = 'rgb(222,82,82)';
+            lesserThanValue.style.borderColor = 'rgb(222,82,82)';
             isTrue = false;
         }
+    } else if (rangeSelect.value === 'greaterThan') {
+        // Check if greaterThanValue is filled and is a number
+        var greaterThanValue = container.querySelector('#greaterThanValue');
 
-        // Check Range Selection
-        if (field.id == "hemisphereSelect" && field.options[field.selectedIndex].text == "Select a Hemisphere") {
-            document.getElementById("error_message_hemisphere").innerText = "Please select a Hemisphere";
-            document.getElementById("error_message_hemisphere").style.display = "block";
-
-            // Set Border Color to Red
-            field.style.borderColor = 'rgb(222,82,82)';
+        if (greaterThanValue.value.trim() === '' || isNaN(greaterThanValue.value)) {
+            document.getElementById("error_message_range").innerText = "Please enter a valid number for Greater Than Range";
+            document.getElementById("error_message_range").style.display = "block";
+            greaterThanValue.style.borderColor = 'rgb(222,82,82)';
             isTrue = false;
         }
-
-        // Check Input Selection
-        // if (field.id == "" && field.value == "")
-
-    });
+    }
     
+
+    // container.querySelectorAll('select').forEach(function (field) {  
+    //     // Check Range Selection
+    //     if (field.id == "rangeSelect" && field.options[field.selectedIndex].text == "Select a Range") {
+    //         document.getElementById("error_message_range").innerText = "Please select a Range option";
+    //         document.getElementById("error_message_range").style.display = "block";
+    //         field.style.borderColor = 'rgb(222,82,82)';
+    //         isTrue = false;
+    //     }
+
+    //     // Check Range Selection
+    //     if (field.id == "hemisphereSelect" && field.options[field.selectedIndex].text == "Select a Hemisphere") {
+    //         document.getElementById("error_message_hemisphere").innerText = "Please select a Hemisphere";
+    //         document.getElementById("error_message_hemisphere").style.display = "block";
+    //         field.style.borderColor = 'rgb(222,82,82)';
+    //         isTrue = false;
+    //     }
+    // });
+
     return isTrue;
 }
 
