@@ -11,6 +11,7 @@ function toggleVisibility(containerID) {
     if (isVisible) {
         ClearAllInputsInContainer(container);
         
+        // We don't have to hide the labels for MECHANISMS
         if (containerID != "filter_mechs"){
             // Reset dropdown selection
             container.querySelector('select').selectedIndex = 0;
@@ -25,21 +26,29 @@ function toggleVisibility(containerID) {
                 label.style.display = "none";
             });
 
-            hideLabels([container.querySelector("#minRangeLabel"), container.querySelector("#maxRangeLabel"), container.querySelector("#lesserThanLabel"), container.querySelector("#greaterThanLabel")]);
+            hideLabels([container.querySelector("#minRangeLabel"), container.querySelector("#maxRangeLabel"), 
+                        container.querySelector("#lesserThanLabel"), container.querySelector("#greaterThanLabel"),
+                        container.querySelector('#minRangeUnit'),container.querySelector('#maxRangeUnit'),
+                        container.querySelector('#lesserThanUnit'),container.querySelector('#greaterThanUnit')]);
+        }
 
-            // Clear Error Messages Before Switching Fields
-            var errorMessages = container.querySelectorAll('.error_message');
-            errorMessages.forEach(function(errorMessage) {
-                    errorMessage.style.display = "none";
-            });
+        // Clear Error Messages Before Switching Fields
+        var errorMessages = container.querySelectorAll('.error_message');
+        errorMessages.forEach(function(errorMessage) {
+                errorMessage.style.display = "none";
+        });
 
-            // Clear Red-colored borders Before Switching Fields (which are used to indicate error)
-            var inputFields = container.querySelectorAll('input, select');
-            inputFields.forEach(function(field) {
-                if (field.style.borderColor = 'rgb(222,82,82)') {
-                    field.style.borderColor = 'grey';
-                }
-            }); 
+        // Clear Red-colored borders Before Switching Fields (which are used to indicate error)
+        var inputFields = container.querySelectorAll('input, select');
+        inputFields.forEach(function(field) {
+            if (field.style.borderColor = 'rgb(222,82,82)') {
+                field.style.borderColor = 'grey';
+            }
+        }); 
+        
+        // Clear Red-colored borders for filterContainer 
+        if (container.style.borderColor = 'rgb(222,82,82)'){
+            container.style.borderColor = 'white';
         }
     }   
 
@@ -139,6 +148,10 @@ function toggleFields(containerId) {
     var maxRangeLabel = container.querySelector("#maxRangeLabel");
     var lesserThanLabel = container.querySelector("#lesserThanLabel");
     var greaterThanLabel = container.querySelector("#greaterThanLabel");
+    var minRangeUnit = container.querySelector('#minRangeUnit');
+    var maxRangeUnit = container.querySelector('#maxRangeUnit');
+    var lesserThanUnit = container.querySelector('#lesserThanUnit');
+    var greaterThanUnit = container.querySelector('#greaterThanUnit');
 
     // Clear Error Messages Before Switching Fields
     var errorMessages = container.querySelectorAll('.error_message');
@@ -154,6 +167,11 @@ function toggleFields(containerId) {
         }
     }); 
 
+    // Clear Red-colored border for filterContainer
+    if (container.style.borderColor = 'rgb(222,82,82)'){
+        container.style.borderColor = 'white';
+    }
+
     // If selected value is between, lesser than, or greater than 
     if (select.value === "between") {
         betweenFields.forEach(function (field) {
@@ -161,8 +179,8 @@ function toggleFields(containerId) {
         });
         lesserThanField.style.display = "none";
         greaterThanField.style.display = "none";
-        showLabels([minRangeLabel, maxRangeLabel]);
-        hideLabels([lesserThanLabel, greaterThanLabel]);
+        showLabels([minRangeLabel, maxRangeLabel, minRangeUnit, maxRangeUnit]);
+        hideLabels([lesserThanLabel, greaterThanLabel, lesserThanUnit, greaterThanUnit]);
         
         // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
@@ -173,8 +191,8 @@ function toggleFields(containerId) {
         });
         lesserThanField.style.display = "block";
         greaterThanField.style.display = "none";
-        showLabels([lesserThanLabel]);
-        hideLabels([minRangeLabel, maxRangeLabel, greaterThanLabel]);
+        showLabels([lesserThanLabel, lesserThanUnit]);
+        hideLabels([minRangeLabel, maxRangeLabel, greaterThanLabel, minRangeUnit, maxRangeUnit, greaterThanUnit]);
 
         // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
@@ -185,8 +203,8 @@ function toggleFields(containerId) {
         });
         lesserThanField.style.display = "none";
         greaterThanField.style.display = "block";
-        showLabels([greaterThanLabel]);
-        hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel]);
+        showLabels([greaterThanLabel, greaterThanUnit]);
+        hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel, minRangeUnit, maxRangeUnit, lesserThanUnit]);
 
         // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
@@ -195,7 +213,7 @@ function toggleFields(containerId) {
         betweenFields.forEach(function (field) {
             field.style.display = "none";
         });
-        hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel, greaterThanLabel]);
+        hideLabels([minRangeLabel, maxRangeLabel, lesserThanLabel, greaterThanLabel, minRangeUnit, maxRangeUnit, lesserThanUnit, greaterThanUnit]);
 
         // Clear Inputs from previous fields after switching
         ClearAllInputsInContainerBasedOnDisplay(container);
@@ -259,9 +277,16 @@ function clearAllFilters() {
 }
 
 
-// Attach the clearAllFilters function to the "Clear Filters" button
-var clearFiltersButton = document.querySelector('.clearFiltersButton');
-clearFiltersButton.addEventListener('click', clearAllFilters);
+// Wait for the DOM content to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Attach the clearAllFilters function to the "Clear Filters" button
+    var clearFiltersButton = document.querySelector('.clearFiltersButton');
+    if (clearFiltersButton) {
+        clearFiltersButton.addEventListener('click', clearAllFilters);
+    } else {
+        console.error("Clear Filters button not found in the DOM.");
+    }
+});
 
 
 // Check Select elements and remove error messages if they have already been selected

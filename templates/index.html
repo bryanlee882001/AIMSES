@@ -11,18 +11,13 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/selection.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/modal.css') }}">
 
-        <link rel="stylesheet" href="css/timePicker.css">
-        <script src="//code.jquery.com/jquery.min.js"></script>
-        <script src="js/jquery-timepicker.js"></script>
-        
+        <script src="//code.jquery.com/jquery.min.js"></script>        
         <script src="{{ url_for('static', filename='scripts/scripts.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/charts.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/filters.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/modal.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 
         <title>AIMSES</title>
     </head>
@@ -62,8 +57,8 @@
                     <button class="selectionButton" onclick="toggleVisibility('filter_kp')">KP</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_ae')">AE</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_dst')">DST</button>
-                    <button class="selectionButton" onclick="toggleVisibility('filter_newell_flux')">NEWELL FLUX</button>
-                    <button class="selectionButton" onclick="toggleVisibility('filter_lca')">LOST CONE ANGLE</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_newell_flux')">SW DRIVING</button>
+                    <button class="selectionButton" onclick="toggleVisibility('filter_lca')">LCA</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_mechs')">MECHANISMS</button>  
                 </div>
             </div>
@@ -77,6 +72,7 @@
             <!-- MLT Filter  -->
             <div class="filterContainer" id="filter_mlt">
                 <div class="filterTitle">MLT</div>
+                <div class="filterDescription">Magnetic Global Time</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range:</label>
@@ -89,27 +85,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">HH:MM:SS</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">HH:MM:SS</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Lesser Than" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">HH:MM:SS</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Greater Than" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">HH:MM:SS</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- ILAT Filter  -->
             <div class="filterContainer" id="filter_ilat">
                 <div class="filterTitle">ILAT</div>
-                <!-- <span class="close" onclick="toggleVisibility('filter_ilat')">&times;</span> -->
+                <div class="filterDescription"> Invariant Latitude</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range:</label>
@@ -122,19 +131,31 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                 </div>
                 <div id="error_message_range" class="error_message" style="display: none;"></div>
@@ -153,6 +174,7 @@
             <!-- ALT Filter  -->
             <div class="filterContainer" id="filter_alt">
                 <div class="filterTitle">ALT</div>
+                <div class="filterDescription">Altitude</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -165,19 +187,31 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none; ">km</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">km</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">km</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">km</span>
+                        </div>
                     </div>
                 </div>
                 <div id="error_message_range" class="error_message" style="display: none;"></div>
@@ -186,6 +220,7 @@
             <!-- SZA Filter  -->
             <div class="filterContainer" id="filter_sza">
                 <div class="filterTitle">SZA</div>
+                <div class="filterDescription">Solar Zenith Angle</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -198,26 +233,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- F10.7 Filter -->
             <div class="filterContainer" id="filter_f107">
                 <div class="filterTitle">F10.7</div>
+                <div class="filterDescription">F10.7 CM Radio Flux/Emissions</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -230,26 +279,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">SFU</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">SFU</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">SFU</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">SFU</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- EFLUX Filter -->
             <div class="filterContainer" id="filter_eflux">
                 <div class="filterTitle">EFLUX</div>
+                <div class="filterDescription">Net Downgoing Electron Energy Flux</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -262,26 +325,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">ergs/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">ergs/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">ergs/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">ergs/cm²-s</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- NFLUX Filter -->
             <div class="filterContainer" id="filter_nflux">
                 <div class="filterTitle">NFLUX</div>
+                <div class="filterDescription">Net Downgoing Electron Number Flux</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -294,26 +371,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">#/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">#/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">#/cm²-s</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">#/cm²-s</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- CONJUGATE SZA Filter -->
             <div class="filterContainer" id="filter_conjugate_sza">
                 <div class="filterTitle">CONJUGATE SZA</div>
+                <div class="filterDescription">Solar Zenith Angle of the Conjugate Foot Point</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -326,26 +417,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- KP Filter -->
             <div class="filterContainer" id="filter_kp">
                 <div class="filterTitle">KP</div>
+                <div class="filterDescription">KP Geomagnetic index (+= 0.33 and -= 0.67)</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -358,26 +463,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;"></span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;"></span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;"></span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;"></span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- AE Filter -->
             <div class="filterContainer" id="filter_ae">
                 <div class="filterTitle">AE</div>
+                <div class="filterDescription">AE Geomagnetic Index</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -390,26 +509,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;"></input>
+                            <span id="minRangeUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="maxRangeUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="lesserThanUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="greaterThanUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- DST Filter -->
             <div class="filterContainer" id="filter_dst">
                 <div class="filterTitle">DST</div>
+                <div class="filterDescription">DST Geomagnetic Index</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -422,26 +555,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;"></input>
+                            <span id="minRangeUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="maxRangeUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="lesserThanUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none; width: 130px; padding-right: 100px;">
+                            <span id="greaterThanUnit" style="display: none;">nano Tesla (nT)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- NEWELL FLUX Filter -->
             <div class="filterContainer" id="filter_newell_flux">
-                <div class="filterTitle">NEWELL FLUX</div>
+                <div class="filterTitle">SOLAR WIND DRIVING</div>
+                <div class="filterDescription">Dayside Merging Rate</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -454,26 +601,40 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none; width: 100px; padding-right: 130px;"></input>
+                            <span id="minRangeUnit" style="display: none;">((km/s)<sup>4/3</sup>) x (nT<sup>2/3</sup>)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none; width: 100px; padding-right: 130px;">
+                            <span id="maxRangeUnit" style="display: none;">((km/s)<sup>4/3</sup>) x (nT<sup>2/3</sup>)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none; width: 100px; padding-right: 130px;">
+                            <span id="lesserThanUnit" style="display: none;">((km/s)<sup>4/3</sup>) x (nT<sup>2/3</sup>)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none; width: 100px; padding-right: 130px;">
+                            <span id="greaterThanUnit" style="display: none;">((km/s)<sup>4/3</sup>) x (nT<sup>2/3</sup>)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
 
             <!-- LOST CONE ANGLE (LCA) Filter -->
             <div class="filterContainer" id="filter_lca">
-                <div class="filterTitle">Lost Cone Angle</div>
+                <div class="filterTitle">LCA</div>
+                <div class="filterDescription">Theoretical Lost Cone Angle at Measurement Location as per IGRF Model</div>
                 <div class="filterGrid">
                     <div> 
                         <label id="rangeLabel" for="rangeSelect" style="display:block;">Range</label>
@@ -486,21 +647,34 @@
                     </div>
                     <div>
                         <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
-                        <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
-                        <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
-                        <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                     <div>
                         <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
-                        <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;">Degree(s)</span>
+                        </div>
                     </div>
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
             
             <!-- MECH Filter  -->
@@ -572,6 +746,7 @@
                         </label>
                     </div>  
                 </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
             </div>
         </div>
 
