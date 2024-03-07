@@ -94,6 +94,15 @@ option{
 
 .filterTitle{
     color: white;
+    font-size: 20px;
+    margin-right: 20px;
+    font-weight: 900;
+}
+
+.filterDescription {
+    color: darkgrey;
+    font-size: 15px;
+    margin-top:10px;
     margin-right: 20px;
 }
 
@@ -106,5 +115,6 @@ option{
     color: rgb(222,82,82,1);
     margin-bottom: 10px;
     margin-top: 5px;
-    font-size: 12px;
+    font-size: 13px;
 }
+
