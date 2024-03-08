@@ -1,303 +1,262 @@
-import mysql.connector
 import utility
+
 
 # A function that determines the range for MLT based on user input for querying
 def getMLTQuery(string_query, filterData):
-    string_query += f"{filterData}"
-    return string_query 
-    # minRange = filterData[0]
-    # maxRange = filterData[1]
+    if not filterData:
+        return string_query
 
-    # string_query += f"MLT BETWEEN {minRange} AND {maxRange} AND "
+    # Check Range
+    rangeType = filterData.get("Range")
+    if rangeType == "Between":
+        minRange = utility.convertMLT(filterData.get("minRange"))
+        maxRange = utility.convertMLT(filterData.get("maxRange"))
+
+        if minRange <= maxRange:
+            string_query += f"(MLT BETWEEN {minRange} AND {maxRange}) AND "
+        else: 
+            # minRange > maxRange
+            string_query += f"(MLT BETWEEN {minRange} AND 24.0) OR (MLT BETWEEN 0.0 AND {maxRange}) AND"
+
+    elif rangeType == "Lesser Than":
+        lesserThanValue = utility.convertMLT(filterData.get("lesserThanValue"))
+        string_query += f"(MLT <= {lesserThanValue}) AND "
+
+    elif rangeType == "Greater Than":
+        greaterThanValue = utility.convertMLT(filterData.get("greaterThanValue"))
+        string_query += f"(MLT >= {greaterThanValue}) AND "
+    
+    else:
+        raise ValueError("No range type specified")
+
+    return string_query
 
 
 # A function that determines the range for ILAT based on user input for querying
 def getILATQuery(string_query, filterData):
-    
-    if len(filterData) == 0:
+
+    if not filterData:
         return string_query
- 
-    if filterData["Range"] == "Lesser Than":
-        lesserThanValue = utility.checkNumInput(filterData["lesserThanValue"])
-        hemisphere = filterData["Hemisphere"]
+
+    hemisphere = filterData.get("Hemisphere")
+    if not hemisphere:
+        raise ValueError("No hemisphere selected")
+
+    # Check Range
+    rangeType = filterData.get("Range")
+    if rangeType == "Lesser Than":
+        lesserThanValue = utility.checkNumInput(filterData.get("lesserThanValue"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= lesserThanValue <= 90:
-            string_query += f"ILAT < {lesserThanValue} AND "
+            string_query += f"(ILAT <= {lesserThanValue}) AND "
         elif hemisphere == "Southern Hemisphere" and -90 <= lesserThanValue <= 0:
-            string_query += f"ILAT < {lesserThanValue} AND "
-        elif hemisphere == "Either" and 0 <= abs(lesserThanValue) == lesserThanValue <= 90:
-            string_query += f"ILAT < {lesserThanValue} AND "
+            string_query += f"(ILAT <= {lesserThanValue}) AND "
+        elif hemisphere == "Either" and 0 <= abs(lesserThanValue) <= 90:
+            string_query += f"(ILAT <= {lesserThanValue}) AND "
         else:
-            raise ValueError("Invalid range for 'Lesser than' type")
+            raise ValueError("Invalid range for 'Lesser Than' type")
         return string_query
 
-    if filterData["Range"] == "Greater Than":
-        greaterThanValue = utility.checkNumInput(filterData["greaterThanValue"])
-        hemisphere = filterData["Hemisphere"]
+    if rangeType == "Greater Than":
+        greaterThanValue = utility.checkNumInput(filterData.get("greaterThanValue"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= greaterThanValue <= 90:
-            string_query += f"ILAT > {greaterThanValue} AND "
+            string_query += f"(ILAT >= {greaterThanValue}) AND "
         elif hemisphere == "Southern Hemisphere" and -90 <= greaterThanValue <= 0:
-            string_query += f"ILAT > {greaterThanValue} AND "
-        elif hemisphere == "Either" and 0 <= minRange == abs(greaterThanValue) <= 90:
-            string_query += f"ILAT > {greaterThanValue} AND "
+            string_query += f"(ILAT >= {greaterThanValue}) AND "
+        elif hemisphere == "Either" and 0 <= abs(greaterThanValue) <= 90:
+            string_query += f"(ILAT >= {greaterThanValue}) AND "
         else:
-            raise ValueError("Invalid range for 'Between' type")
+            raise ValueError("Invalid range for 'Greater Than' type")
         return string_query
-        
-    
-    if filterData["Range"] == "Between":
-        minRange = utility.checkNumInput(filterData["minRange"])            
-        maxRange = utility.checkNumInput(filterData["maxRange"])
-        hemisphere = filterData["Hemisphere"]
+
+    if rangeType == "Between":
+        minRange = utility.checkNumInput(filterData.get("minRange"))
+        maxRange = utility.checkNumInput(filterData.get("maxRange"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= minRange < maxRange <= 90:
-            string_query += f"ILAT BETWEEN {minRange} AND {maxRange} AND "
+            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
         elif hemisphere == "Southern Hemisphere" and -90 <= minRange < maxRange <= 0:
-            string_query += f"ILAT BETWEEN {minRange} AND {maxRange} AND "
-        elif hemisphere == "Either" and 0 <= minRange == abs(minRange) < maxRange == abs(maxRange) <= 90:
-            string_query += f"ILAT BETWEEN {minRange} AND {maxRange} AND " 
+            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
+        elif hemisphere == "Either" and 0 <= abs(minRange) < abs(maxRange) <= 90:
+            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
         else:
             raise ValueError("Invalid range for 'Between' type")
         return string_query
-        
-    raise ValueError("No hemisphere selected")
 
+    raise ValueError("Invalid or No Range Selected")
+    
 
 # A function that determines the range for ALT based on user input for querying
 def getALTQuery(string_query, filterData):
-    
-    if len(filterData) == 0:
+
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    if filterData["Range"] == "Lesser Than":
-        maxRange = float(filterData["lesserThanValue"])
-        string_query += f"ALT < {maxRange} AND "
-        return string_query 
-    
-    if filterData["Range"] == "Greater Than":
-        minRange = float(filterData["greaterThanValue"])
-        string_query += f"ALT > {minRange} AND "
-    
-    if filterData["Range"] == "Between":
-        minRange = float(filterData["minRange"])
-        maxRange = float(filterData["maxRange"])
-
-        if minRange < maxRange:
-            string_query += f"ALT BETWEEN {minRange} AND {maxRange} AND "
-        else:
-            raise ValueError("Minimum Range cannot be more than Maximum Range") 
-        return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "ALT")
 
 
 # A function that determines the range for SZA based on user input for querying
 def getSZAQuery(string_query, filterData):
 
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    if filterData["Range"] == "lesserThanValue":
-        maxRange = float(filterData["maxRange"])
-        if 0 <= maxRange <= 180:
-            string_query += f"SZA < {maxRange} AND "
-        return string_query 
-    
-    if filterData["Range"] == "greaterThanValue":
-        minRange = float(filterData["minRange"])
-        if 0 <= minRange <= 180:
-            string_query += f"SZA > {minRange} AND "
-        return string_query 
-    
-    if filterData["Range"] == "Between":
-        minRange = float(filterData[0])
-        maxRange = float(filterData[1])
-        if 0 <= minRange < maxRange <= 180: 
-            string_query += f"SZA BETWEEN {minRange} AND {maxRange} AND "
-        return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "SZA")
 
 
 # A function that determines the range for F10.7 based on user input for querying
 def getF107Query(string_query, filterData):
     
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    for i in range(len(filterData)):
-        if filterData[i] == "Lesser Than":
-            maxRange = float(filterData[0])
-            string_query += f"F107 < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Greater Than":
-            minRange = float(filterData[0])
-            string_query += f"F107 > {minRange} AND "
-        
-        if filterData[i] == "Between":
-            minRange = float(filterData[0])
-            maxRange = float(filterData[1])
-
-            if minRange < maxRange:
-                string_query += f"F107 BETWEEN {minRange} AND {maxRange} AND "
-            else:
-               raise ValueError("Minimum Range cannot be more than Maximum Range") 
-            return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "F107")
 
 
 # A function that determines the range for EFLUX based on user input for querying 
 def getEFLUXQuery(string_query, filterData):
-    return string_query 
+
+    if not filterData:
+        # No filter data provided, return the unchanged query
+        return string_query
+    
+    return genericFilterQuery(string_query, filterData, "EFLUX")
 
 
 # A function that determines the range for NFLUX based on user input for querying 
 def getNFLUXQuery(string_query, filterData):
-    return string_query 
+
+    if not filterData:
+        # No filter data provided, return the unchanged query
+        return string_query
+    
+    return genericFilterQuery(string_query, filterData, "NFLUX")
 
 
 # A function that determines the range for Conjugate SZA based on user input for querying 
 def getCONJUGATESZAQuery(string_query, filterData):
-    return string_query 
+
+    if not filterData:
+        # No filter data provided, return the unchanged query
+        return string_query
+    
+    return genericFilterQuery(string_query, filterData, "CONJUGATE_SZA")
 
 
 # A function that determines the range for KP based on user input for querying 
 def getKPQuery(string_query, filterData):
-    return string_query 
+
+    if not filterData:
+        # No filter data provided, return the unchanged query
+        return string_query
+    
+    # Check Range
+    rangeType = filterData.get("Range")
+    if rangeType == "Lesser Than":
+        maxRange = utility.checkNumInput(filterData.get("lesserThanValue"))
+        string_query += f"(KP < {maxRange}) AND "
+        return string_query 
+
+    elif rangeType == "Greater Than":
+        minRange = utility.checkNumInput(filterData.get("greaterThanValue"))
+        string_query += f"(KP >= {minRange}) AND "
+        return string_query
+
+    elif rangeType == "Between":
+        minRange = utility.checkNumInput(filterData.get("minRange"))
+        maxRange = utility.checkNumInput(filterData.get("maxRange"))
+
+        if minRange > maxRange:
+            raise ValueError("Minimum Range cannot be more than Maximum Range")
+
+        string_query += f"(NFLUX BETWEEN {minRange} AND {maxRange}) AND "
+        return string_query
+
+    else:
+        raise ValueError("Invalid or No Range Selected")
 
 
 # A function that determines the range for AE based on user input for querying 
 def getAEQuery(string_query, filterData):
 
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    for i in range(len(filterData)):
-        if filterData[i] == "Lesser Than":
-            maxRange = float(filterData[0])
-            if 0 <= maxRange <= 180:
-                string_query += f"AE < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Greater Than":
-            minRange = float(filterData[0])
-            string_query += f"AE > {minRange} AND "
-            if 0 <= minRange <= 180:
-                string_query += f"AE < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Between":
-            minRange = float(filterData[0])
-            maxRange = float(filterData[1])
-            if 0 <= minRange < maxRange <= 180: 
-                string_query += f"AE BETWEEN {minRange} AND {maxRange} AND "
-            return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "AE")
 
 
 # A function that determines the range for DST based on user input for querying 
 def getDSTQuery(string_query, filterData):
 
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    for i in range(len(filterData)):
-        if filterData[i] == "Lesser Than":
-            maxRange = float(filterData[0])
-            if 0 <= maxRange <= 180:
-                string_query += f"DST < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Greater Than":
-            minRange = float(filterData[0])
-            string_query += f"DST > {minRange} AND "
-            if 0 <= minRange <= 180:
-                string_query += f"DST < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Between":
-            minRange = float(filterData[0])
-            maxRange = float(filterData[1])
-            if 0 <= minRange < maxRange <= 180: 
-                string_query += f"DST BETWEEN {minRange} AND {maxRange} AND "
-            return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "DST")
 
 
 # A function that determines the range for Newell Flux based on user input for querying 
 def getNEWELLFLUXQuery(string_query, filterData):
 
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    for i in range(len(filterData)):
-        if filterData[i] == "Lesser Than":
-            maxRange = float(filterData[0])
-            if 0 <= maxRange <= 180:
-                string_query += f"NEWELL_FLUX < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Greater Than":
-            minRange = float(filterData[0])
-            string_query += f"NEWELL_FLUX > {minRange} AND "
-            if 0 <= minRange <= 180:
-                string_query += f"NEWELL_FLUX < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Between":
-            minRange = float(filterData[0])
-            maxRange = float(filterData[1])
-            if 0 <= minRange < maxRange <= 180: 
-                string_query += f"NEWELL_FLUX BETWEEN {minRange} AND {maxRange} AND "
-            return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "NEWELL_FLUX")
 
 
 # A function that determines the range for LCA based on user input for querying 
 def getLCAQuery(string_query, filterData):
 
-    if len(filterData) == 0:
+    if not filterData:
+        # No filter data provided, return the unchanged query
         return string_query
     
-    for i in range(len(filterData)):
-        if filterData[i] == "Lesser Than":
-            maxRange = float(filterData[0])
-            if 0 <= maxRange <= 180:
-                string_query += f"SZA < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Greater Than":
-            minRange = float(filterData[0])
-            string_query += f"SZA > {minRange} AND "
-            if 0 <= minRange <= 180:
-                string_query += f"SZA < {maxRange} AND "
-            return string_query 
-        
-        if filterData[i] == "Between":
-            minRange = float(filterData[0])
-            maxRange = float(filterData[1])
-            if 0 <= minRange < maxRange <= 180: 
-                string_query += f"SZA BETWEEN {minRange} AND {maxRange} AND "
-            return string_query
-
-    raise ValueError("No Range Selected")
+    return genericFilterQuery(string_query, filterData, "LCA")
 
 
 # A function that determines the range for LCA based on user input for querying 
 def getMECHSQuery(string_query, filterData):
-    return string_query 
+    return string_query
 
+
+def genericFilterQuery(string_query, filterData, column):
+    
+    # Check Range
+    rangeType = filterData.get("Range")
+    if rangeType == "Lesser Than":
+        maxRange = utility.checkNumInput(filterData.get("lesserThanValue"))
+        string_query += f"({column} <= {maxRange}) AND "
+        return string_query 
+
+    elif rangeType == "Greater Than":
+        minRange = utility.checkNumInput(filterData.get("greaterThanValue"))
+        string_query += f"({column} >= {minRange}) AND "
+        return string_query
+
+    elif rangeType == "Between":
+        minRange = utility.checkNumInput(filterData.get("minRange"))
+        maxRange = utility.checkNumInput(filterData.get("maxRange"))
+
+        if minRange > maxRange:
+            raise ValueError("Minimum Range cannot be more than Maximum Range")
+
+        string_query += f"({column} BETWEEN {minRange} AND {maxRange}) AND "
+        return string_query
+
+    else:
+        raise ValueError("Invalid or No Range Selected")
+    
 
 # A function that creates a query based on user input
 def createQuery(dataDict):
 
-    string_query = 'SELECT * FROM AIMSES_Norm WHERE '
+    string_query = 'SELECT * FROM AIMSES_NORM WHERE '
 
     for key in dataDict: 
 
@@ -342,6 +301,10 @@ def createQuery(dataDict):
 
         elif key == "MECHANISMS": 
             string_query = getMECHSQuery(string_query, dataDict[key])
+
+    # Remove the last 'AND' if it exists
+    if string_query.endswith('AND '):
+        string_query = string_query[:-4]
 
     return string_query 
 
