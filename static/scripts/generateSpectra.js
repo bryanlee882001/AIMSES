@@ -102,22 +102,21 @@ function generateSpectra() {
 
 
     // Display data in the modal if there is any input or selection
-    if (inputData.trim() !== '' && validateFilters()) {
-        // var modalContent = document.getElementById('modalContent');
-        modalContent.innerHTML = inputData;
-
-        // Open the modal
-        openModal();
-        
-        // Send data to backend
-        sendDataToBackend(inputDict);
+    if (validateFilters()) {
+        if (inputData.trim() !== ''){
+            var modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = createFilterSelectionSummary(inputDict);
+    
+            // Open the modal
+            openModal();
+            
+            // Send data to backend
+            sendDataToBackend(inputDict);
+        }
+        else {
+            alert("No Filters Selected");
+        }
     }
-    // else {
-    //     // Scroll the page to the top
-    //     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // }
-
-    inputDict = {};
 }
 
 
@@ -137,4 +136,52 @@ function sendDataToBackend(data) {
       .catch(error => { 
         console.error('Error:', error); 
       }); 
+}
+
+
+// Generate Filter Selection Summary for users
+function createFilterSelectionSummary(inputDict) {
+
+    var selectionAndFilterSummary = ''; 
+    for (let selectionCriteria in inputDict) {
+
+        selectionAndFilterSummary += selectionCriteria + " : ";
+        
+        var selection = inputDict[selectionCriteria];
+
+        // check if value is a dictionary
+        if (typeof selection === 'object') {
+            if (selection.hasOwnProperty('Hemisphere')) {
+                selectionAndFilterSummary += selection["Hemisphere"] + ", ";
+            }
+    
+            if (selection.hasOwnProperty("Range")) {
+                if (selection["Range"] == "Between") {
+                    selectionAndFilterSummary += " Between " + selection["minRange"] + " and " + selection["maxRange"];
+                }
+                else if (selection["Range"] == "Lesser Than") {
+                    selectionAndFilterSummary += " Lesser Than " + selection["lesserThanValue"];
+                }
+                else if (selection["Range"] == "Greater Than") {
+                    selectionAndFilterSummary += " Greater Than " + selection["greaterThanValue"];
+                }
+                else {
+                    selectionAndFilterSummary += " Invalid Range";
+                }
+            }    
+        }
+
+        // if value is not a dictionary, it is an array 
+        if (selectionCriteria === "Statistics" ||
+            selectionCriteria === "Spectra" ||
+            selectionCriteria === "Normalization" ||
+            selectionCriteria === "Mission") {
+            
+            selectionAndFilterSummary += inputDict[selectionCriteria].join(', ');
+        }
+
+        selectionAndFilterSummary += '<br>';
+    }
+
+    return selectionAndFilterSummary
 }
