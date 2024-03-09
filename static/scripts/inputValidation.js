@@ -909,4 +909,6 @@ function validateMECHS(containerId) {
     else {
         container.style.borderColor = 'white'
     }
+
+    return isChecked
 }
