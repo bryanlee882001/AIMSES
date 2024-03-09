@@ -5,8 +5,10 @@ from datetime import datetime
 def convertMLT(time_str):
 
     try:
-        # ERROR: 23:59:59. BUT THERE ARE 52 ELEMENTS IN 24:00:00
-        
+        # If input is 24:00:00, we assume that its 00:00:00 in the database
+        if (time_str == '24:00:00'): 
+            return 0.0
+
         # Parse the time string to a datetime object
         time_obj = datetime.strptime(time_str, '%H:%M:%S')
 

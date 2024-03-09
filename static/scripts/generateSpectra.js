@@ -169,6 +169,11 @@ function createFilterSelectionSummary(inputDict) {
                     selectionAndFilterSummary += " Invalid Range";
                 }
             }    
+
+            // If selection criteria is mechanism, it should only have one element since its a radio button
+            if (selectionCriteria == "MECHANISMS" && selection.length == 1) {
+                selectionAndFilterSummary += selection[0];   
+            }
         }
 
         // if value is not a dictionary, it is an array 

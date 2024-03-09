@@ -1,5 +1,5 @@
 import utility
-
+import spectra
 
 # A function that determines the range for MLT based on user input for querying
 def getMLTQuery(string_query, filterData):
@@ -13,8 +13,10 @@ def getMLTQuery(string_query, filterData):
         maxRange = utility.convertMLT(filterData.get("maxRange"))
 
         if minRange <= maxRange:
+            # Everything between 2 and 22 
             string_query += f"(MLT BETWEEN {minRange} AND {maxRange}) AND "
         else: 
+            # Everything not between 2 and 22 (22 to 2)
             # minRange > maxRange
             string_query += f"(MLT BETWEEN {minRange} AND 24.0) OR (MLT BETWEEN 0.0 AND {maxRange}) AND"
 
@@ -173,7 +175,7 @@ def getKPQuery(string_query, filterData):
         if minRange > maxRange:
             raise ValueError("Minimum Range cannot be more than Maximum Range")
 
-        string_query += f"(NFLUX BETWEEN {minRange} AND {maxRange}) AND "
+        string_query += f"(KP BETWEEN {minRange} AND {maxRange}) AND "
         return string_query
 
     else:
@@ -222,9 +224,64 @@ def getLCAQuery(string_query, filterData):
 
 # A function that determines the range for LCA based on user input for querying 
 def getMECHSQuery(string_query, filterData):
+
+    if len(filterData) != 1: 
+        return string_query
+    
+    checkedMECH = filterData[0]
+
+    if checkedMECH == "QS Only":
+        string_query += "(MECHS = -1) AND "
+
+    elif checkedMECH == "QS Dominant":
+        string_query += "(MECHS = -1 OR MECH = 1) AND "
+        
+    elif checkedMECH == "Alf Only":
+        string_query += "(MECHS = -2) AND "
+
+    elif checkedMECH == "Alf Dominant":
+        string_query += "(MECHS = -2 OR MECH = 2) AND "
+
+    elif checkedMECH == "WS Only":
+        string_query += "(MECHS = -4) AND "
+
+    elif checkedMECH == "WS Dominant":
+        string_query += "(MECHS = -4 OR MECH = 4) AND "
+
+    elif checkedMECH == "QS + Alf":
+        string_query += "(MECHS = 3) AND "
+
+    elif checkedMECH == "QS + WS":
+        string_query += "(MECHS = 5) AND "
+
+    elif checkedMECH == "Alf + WS":
+        string_query += "(MECHS = 6) AND "
+
+    elif checkedMECH == "Alf + WS + QS":
+        string_query += "(MECHS = 7) AND "
+
+    elif checkedMECH == "Any QS":
+        string_query += "(MECHS = -1 OR MECHS = 1 OR MECHS = 3 OR MECHS = 5 OR MECHS = 7) AND "
+
+    elif checkedMECH == "Any Alf":
+        string_query += "(MECHS = -2 OR MECHS = 2 OR MECHS = 3 OR MECHS = 6 OR MECHS = 7) AND "
+
+    elif checkedMECH == "Any WS":
+        string_query += "(MECHS = -4 OR MECHS = 4 OR MECHS = 5 OR MECHS = 6 OR MECHS = 7) AND "
+
+    elif checkedMECH == "Weak":
+        string_query += "(MECHS = 0) AND "
+
+    elif checkedMECH == "Any Intense":
+        string_query += "(NOT MECHS = 0) AND "
+    
+    else:
+        return string_query
+
     return string_query
 
 
+# A helper function for selections that only have Range (Between, less than, greater than)
 def genericFilterQuery(string_query, filterData, column):
     
     # Check Range
@@ -258,8 +315,10 @@ def createQuery(dataDict):
 
     string_query = 'SELECT * FROM AIMSES_NORM WHERE '
 
+    # Looping through all keys in the dictionary
     for key in dataDict: 
 
+        # 1. Check Filters
         if key == "MLT":
             string_query = getMLTQuery(string_query, dataDict[key])
 
@@ -293,14 +352,19 @@ def createQuery(dataDict):
         elif key == "DST": 
             string_query = getDSTQuery(string_query, dataDict[key])
 
-        elif key == "NEWELL FLUX": 
+        elif key == "SOLAR WIND DRIVING": 
             string_query = getNEWELLFLUXQuery(string_query, dataDict[key])
 
-        elif key == "LOST CONE ANGLE": 
+        elif key == "LCA": 
             string_query = getLCAQuery(string_query, dataDict[key])
 
         elif key == "MECHANISMS": 
             string_query = getMECHSQuery(string_query, dataDict[key])
+
+        # 2. Check Generation Requirements 
+        elif key == "Spectra":
+            string_query = spectra.getSpectra(string_query, dataDict[key])
+
 
     # Remove the last 'AND' if it exists
     if string_query.endswith('AND '):
