@@ -1,5 +1,5 @@
 import utility
-import spectra
+
 
 # A function that determines the range for MLT based on user input for querying
 def getMLTQuery(string_query, filterData):
@@ -16,7 +16,6 @@ def getMLTQuery(string_query, filterData):
             # Everything between 2 and 22 
             string_query += f"(MLT BETWEEN {minRange} AND {maxRange}) AND "
         else: 
-            # Everything not between 2 and 22 (22 to 2)
             # minRange > maxRange
             string_query += f"(MLT BETWEEN {minRange} AND 24.0) OR (MLT BETWEEN 0.0 AND {maxRange}) AND"
 
@@ -313,7 +312,7 @@ def genericFilterQuery(string_query, filterData, column):
 # A function that creates a query based on user input
 def createQuery(dataDict):
 
-    string_query = 'SELECT * FROM AIMSES_NORM WHERE '
+    string_query = 'SELECT TIME FROM AIMSES_NORM WHERE '
 
     # Looping through all keys in the dictionary
     for key in dataDict: 
@@ -361,14 +360,12 @@ def createQuery(dataDict):
         elif key == "MECHANISMS": 
             string_query = getMECHSQuery(string_query, dataDict[key])
 
-        # 2. Check Generation Requirements 
-        elif key == "Spectra":
-            string_query = spectra.getSpectra(string_query, dataDict[key])
-
 
     # Remove the last 'AND' if it exists
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
+
+    string_query += " LIMIT 2"
 
     return string_query 
 
