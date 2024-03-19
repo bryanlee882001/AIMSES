@@ -21,21 +21,72 @@ def processQueryData(data, queried_list_of_dict):
     if (len(list_of_time) == 0):
         return 0
     
-    time_query = "SELECT Spectra_Table, TIME FROM Time_Reference WHERE "
-    for i in range(len(list_of_time)):
-        if (i < len(list_of_time)-1):
-            time_query += f" TIME = {list_of_time[i]} OR"
-        else:
-            time_query += f" TIME = {list_of_time[i]}"
+
+    # Downward: el_0_lc for iLat >0 and el_180_lc for iLat <0
+    if ("Downward" in data["Spectra"]):
+
+        # Downgoing, Energy Flux: JEe_0lc for iLat >0 and JEe_180lc for iLat <0  
+        if (data["Normalization"] == "Energy Flux"): 
+            return 
+        
+        # Downgoing, Number Flux: Je_0lc for iLat >0 and Je_180lc for iLat <0
+        if (data["Normalization"] == "Number Flux"): 
+            return 
+        
+        # Downgoing, Raw: ? 
+        if (data["Normalization"] == "Raw"): 
+            return  
+        
+
+
+    # Upward: el_0_lc for iLat <0 and el_180_lc for iLat >0
+    if ("Upward" in data["Spectra"]):
+
+        # Upward, Energy Flux: JEe_0lc for iLat >0 and JEe_180lc for iLat <0  
+        if (data["Normalization"] == "Energy Flux"): 
+            return 
+        
+        # Upward, Number Flux: Je_0lc for iLat >0 and Je_180lc for iLat <0
+        if (data["Normalization"] == "Number Flux"): 
+            return 
+        
+        # Upward, Raw/ Perpendicular: ? 
+        if (data["Normalization"] == "Raw"): 
+            return  
+        
+
+
+    # Mirroring: (el_90_lcp12 + el_270_lcp12) / 2)
+    if ("Upward" in data["Spectra"]):
+
+        # Upward, Energy Flux: JEe_0lc for iLat >0 and JEe_180lc for iLat <0  
+        if (data["Normalization"] == "Energy Flux"): 
+            return 
+        
+        # Upward, Number Flux: Je_0lc for iLat >0 and Je_180lc for iLat <0
+        if (data["Normalization"] == "Number Flux"): 
+            return 
+        
+        # Upward, Raw: ? 
+        if (data["Normalization"] == "Raw"): 
+            return  
+    
+    
+    # Question:
+    # - What should be queired for raw data?
+    # - 
+
+
+
+
 
     # Get the list of dictionaries (each with Spectra_Table and Time given)
-    list_of_times = app.queryData(time_query)
+    # list_of_times = app.queryData(time_query)
 
     # Query Spectral Data 
-    spectra_data = getTimeFromTables(data, list_of_times)
+    # spectra_data = getTimeFromTables(data, list_of_times)
 
-
-    return spectra_data
+    # return spectra_data
 
 
 
@@ -57,7 +108,7 @@ def getTimeFromTables(data, list_of_times):
 
         # Check User Input on Spectra and Normalization 
         # if "Downward" in data["Spectra"]:
-        
+
 
         # Spectra (Downward, Upward, Mirroring) produces 3 separate graphs?
         # When querying from each spectra table, 

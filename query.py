@@ -221,7 +221,7 @@ def getLCAQuery(string_query, filterData):
     return genericFilterQuery(string_query, filterData, "LCA")
 
 
-# A function that determines the range for LCA based on user input for querying 
+# A function that determines the range for MECHS based on user input for querying 
 def getMECHSQuery(string_query, filterData):
 
     if len(filterData) != 1: 
@@ -277,6 +277,19 @@ def getMECHSQuery(string_query, filterData):
     else:
         return string_query
 
+    return string_query
+
+
+# A function that determines the range for Time based on Mission
+def getMissionTimeQuery(string_query, filterData): 
+    
+    # Check if its Early Mission, Late Mission or Both
+    if filterData == "Early Mission":
+        string_query += "(TIME BETWEEN 843419539000 AND 1023754226000) AND "
+    if filterData == "Late Mission":
+        string_query += "(TIME BETWEEN 1023759079000 AND 1241086949000) AND "
+
+    # If its both, we don't have to filter by time
     return string_query
 
 
@@ -359,6 +372,9 @@ def createQuery(dataDict):
 
         elif key == "MECHANISMS": 
             string_query = getMECHSQuery(string_query, dataDict[key])
+
+        elif key == "Mission":
+            string_query = getMissionTimeQuery(string_query, dataDict[key])
 
 
     # Remove the last 'AND' if it exists
