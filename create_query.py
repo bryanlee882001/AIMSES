@@ -381,6 +381,7 @@ def createQuery(dataDict):
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
 
+    # Comment this. Only for Testing purposes: 
     string_query += " LIMIT 2"
 
     return string_query 
