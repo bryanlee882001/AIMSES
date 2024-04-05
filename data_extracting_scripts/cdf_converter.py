@@ -288,7 +288,7 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
         print(f"Creating Alternate Table for {fieldName}")
 
         isFaulty = False 
-        for ii in range(1, len(values)):
+        for ii in range(len(values)):
 
             time = values[ii][0]
 
@@ -321,17 +321,16 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
             print(f"Inserting Values into Alternate Table for {fieldName}")
 
             # Loop through each row 
-            for ii in range(len(values)):
-                cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
-                concatValues = ', '.join(map(str, cleaned_values))
-                query = f"INSERT INTO {spectra}_{fieldName} (TIME,{','.join(columnName)}) VALUES ({concatValues});"
+            cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
+            concatValues = ', '.join(map(str, cleaned_values))
+            query = f"INSERT INTO {spectra}_{fieldName} (TIME,{','.join(columnName)}) VALUES ({concatValues});"
 
-                try: 
-                    cursor.execute(query)
-                    conn.commit()
-                except Exception as e:
-                    isFaulty = True
-                    print(f"{spectra}_{fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
+            try: 
+                cursor.execute(query)
+                conn.commit()
+            except Exception as e:
+                isFaulty = True
+                print(f"{spectra}_{fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
 
         if isFaulty == False:
             print(f"Successfully Inserted Values into Alternate Table for {fieldName}\n")
