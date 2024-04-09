@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import create_query
 import processing
+import utility
 import query_from_db
 
 app = Flask(__name__)
@@ -22,6 +23,19 @@ def processData():
     # result = f'{data}'
     result = (data, string_query)
     return jsonify({'result': result}) 
+
+
+@app.route('/mission-data', methods=['POST']) 
+def missionData(): 
+    data = request.json['data'] 
+
+    # Count for Early Mission and Late Mission Query
+    query = create_query.createQueryForMission(data)
+
+    # get earlyMission count and lateMission count
+    earlyMissionCount, lateMissionCount = query_from_db.queryMissionCount(query)
+
+    return jsonify({'result': (earlyMissionCount, lateMissionCount)}) 
 
 
 @app.route("/")

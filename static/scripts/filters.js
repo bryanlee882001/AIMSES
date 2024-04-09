@@ -274,6 +274,12 @@ function clearAllFilters() {
     activeButtons.forEach(function(button) {
         button.classList.remove('active');
     });
+
+    var earlyMissionData = document.getElementById('earlyMissionRowData');
+    var lateMissionData = document.getElementById('lateMissionRowData');
+    earlyMissionData.innerHTML = "--";
+    lateMissionData.innerHTML = "--";
+
 }
 
 

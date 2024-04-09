@@ -118,3 +118,57 @@ option{
     font-size: 13px;
 }
 
+
+.missionFrame {
+    border: 1px solid white;
+    width: 800px; 
+    padding: 45px;
+    border-radius: 25px;
+    margin-bottom: 15px;
+    left: 50%;
+    margin-top: 50px;
+
+    display: flex;
+    flex-wrap: wrap; 
+    align-items: center;
+}
+
+.missionInfo {
+    margin-right: 30px;
+    padding: 30px;
+    margin-top: -30px;
+}
+
+.missionInfo h3 {
+    margin-bottom: 0px; /* Adjust this value as needed */
+}
+
+.generateMissionButton{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 50px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-right: 50px;
+    margin-bottom: 15px;
+    background-color: black;
+    font-size: 15px;
+    color: white;
+    border-radius: 5px;
+    border: 2px solid grey;
+    margin-right: 30px;
+}
+
+.generateMissionButton:hover{
+    border: 2px solid white;
+}
+
+.generateMissionButton.active{
+    border: 2px solid white;
+    background-color: rgb(255, 255, 255, 0.3);    
+}
+
+.missionRowData {
+    color: white;
+}

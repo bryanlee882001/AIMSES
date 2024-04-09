@@ -48,4 +48,5 @@ def checkNumInput(input_str):
             raise ValueError("Invalid input")
 
 
-
+def getMissionData(inputDict):
+    return 0 

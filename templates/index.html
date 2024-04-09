@@ -751,9 +751,29 @@
             </div>
         </div>
 
+        <!-- Early Mission/ Late Mission -->
+        <p style="margin-left: -540px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 3: Check for Early Mission / Late Mission</p>
+        <div class="missionFrame">
+
+            <button id="generateMissionButton" class="generateMissionButton" onclick="generateMissionCount()">Check Early / Late Mission</button>
+
+            <div class="missionInfo">
+                <h3 style=>Early Mission</h3>
+                <div style="display: flex; flex-wrap: wrap;">
+                    <div id="earlyMissionRowData" class="missionRowData">--</div>
+                </div>
+            </div>
+
+            <div class="missionInfo">
+                <h3>Late Mission</h3>
+                <div style="display: flex; flex-wrap: wrap;">
+                    <div id="lateMissionRowData" class="missionRowData">--</div>
+                </div>
+            </div>
+        </div>
 
         <!-- Spectra Generation Requirements -->
-        <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 3: Spectra Generation Requirements</p>
+        <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 4: Spectra Generation Requirements</p>
         <div class ="spectraGenerationRequirementContainer">
 
             <!-- Statistics -->
@@ -789,15 +809,15 @@
             <div class="spectraGenerationRequirementCategory" id="Spectra">
                 <div class = "filterTitle">Spectra</div>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Downward
-                    <input type="checkbox" checked="checked">
+                    <input type="radio" name="spectra">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Upward 
-                    <input type="checkbox" checked="checked">
+                    <input type="radio" name="spectra">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Mirroring 
-                    <input type="checkbox" checked="checked">
+                    <input type="radio" name="spectra">
                     <span class="checkmark"></span>
                 </label>
             </div>

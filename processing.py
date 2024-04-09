@@ -1,5 +1,6 @@
 import app
 import query_from_db
+import mysql.connector
 from collections import defaultdict
 
 
@@ -16,43 +17,82 @@ def processQueryData(data, queried_list_of_dict):
             continue 
 
         # Get Time from list of dictionary and append to a list
-        list_of_time.append(round(queried_list_of_dict[i]["TIME"],7))
+        list_of_time.append(queried_list_of_dict[i]["TIME"])
 
     # If No Time is Extracted
     if (len(list_of_time) == 0):
         return 0
     
-    for ii in range(len(list_of_time)): 
-        spectra = queried_list_of_dict["Spectra"]
-        if spectra == "Downward":
-            # Go to the downward tables to get el_0_lc and el_180_lc 
-            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
-            dataDict = query_from_db.queryDataDict(query)
+    spectra = data["Spectra"]
+    # Define a mapping of spectra values to table names
+    spectra_tables = {
+        "Downward": {"el_0_lc": "DOWNGOING_el_0_lc", "el_180_lc": "DOWNGOING_el_180_lc"},
+        "Upward": {"el_0_lc": "UPGOING_el_0_lc", "el_180_lc": "UPGOING_el_180_lc"},
+        "Perpendicular": {"perpendicular": "PERPENDICULAR"}
+    }
 
-        elif spectra == "Upward":
-            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
-            dataDict = query_from_db.queryDataDict(query)
+    # Loop over each time in the list_of_time
+    for time in list_of_time:
+        # Get the table names based on the spectra value
+        tables = spectra_tables.get(spectra)
 
-        elif spectra == "Perpendicular":
-            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
-            dataDict = query_from_db.queryDataDict(query)
+        if tables:
+            # Iterate over each table and execute the query
+            for column, table_name in tables.items():
+                query = f"SELECT * FROM {table_name} WHERE TIME = {time}"
+                data_dict = query_from_db.queryDataDict(query)
+                # Process the data_dict as needed
+                # try:
+                #     # Connect to MySQL
+                #     connection = mysql.connector.connect(**db_config)
 
-    # Get List of Spectra Table Names tuples (TIME, Table Name) from Reference Table
-    table_names = getSpectraTablesFromTime(list_of_time)
-    
+                #     # Create cursor
+                #     cursor = connection.cursor()
 
-    
-    # Question:
-    # - What should be queried for raw data?
-    # - If User selects upgoing and downgoing we put them on the same graph?
-    # - If User selects Raw, Energy Flux, and Number Flux we put them on a separate graph? 
+                #     # Execute SQL query
+                #     query = "SELECT * FROM your_table"
+                #     cursor.execute(query)
+
+                #     # Fetch data as a list of tuples
+                #     data = cursor.fetchall()
+
+                #     # Process the data if needed
+                #     for row in data:
+                #         print(row)  # Example: Print each row
+
+                # except mysql.connector.Error as error:
+                #     print("Error fetching data from MySQL:", error)
+
+                # finally:
+                #     # Close cursor and connection
+                #     if connection.is_connected():
+                #         cursor.close()
+                #         connection.close()
+
+
+
+    # spectra = data["Spectra"]
+    # for ii in range(len(list_of_time)): 
         
-    # Work Flow:
-    # =================================================
-    # 1. Query all the results from AIMSES_Norm using selected fields (DONE)
-    # 2. Filter results using JEe_0lc, JEe_180lc, ilat (do we reference AIMSES_Norm) and get the remaining time (Normalization: Energy flux, Number flux, Raw)
-    # 3. Get the el_90_lcp12, el_270_lcp12, el_0_lc, el_180_lc (Spectra: Downward, Upward, Mirroring) using time 
-    
+    #     if spectra == "Downward":
+    #         # Go to the downward tables to get el_0_lc and el_180_lc 
+    #         query_el_0_lc = f"SELECT * FROM DOWNGOING_el_0_lc WHERE TIME = {list_of_time[ii]}"
+    #         query_el_180_lc = f"SELECT * FROM DOWNGOING_el_180_lc WHERE TIME = {list_of_time[ii]}"
+    #         dataDict_el_0_lc = query_from_db.queryDataDict(query_el_0_lc)
+    #         dataDict_el_180_lc = query_from_db.queryDataDict(query_el_180_lc)
+
+    #     elif spectra == "Upward":
+    #         query_el_0_lc = f"SELECT * FROM UPGOING_el_0_lc WHERE TIME = {list_of_time[ii]}"
+    #         query_el_180_lc = f"SELECT * FROM GOING_el_180_lc WHERE TIME = {list_of_time[ii]}"
+    #         dataDict_el_0_lc = query_from_db.queryDataDict(query_el_0_lc)
+    #         dataDict_el_180_lc = query_from_db.queryDataDict(query_el_180_lc)
+
+    #     elif spectra == "Perpendicular":
+    #         query = f"SELECT * FROM PERPENDICULAR WHERE TIME = {list_of_time[ii]}"
+    #         dataDict = query_from_db.queryDataDict(query)    
+
+
+
 
 def getSpectraTablesFromTime(list_of_time):
     """A function that searches a reference table and finds the spectra tables based on the given list of times """

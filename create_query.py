@@ -285,9 +285,9 @@ def getMissionTimeQuery(string_query, filterData):
     
     # Check if its Early Mission, Late Mission or Both
     if filterData == "Early Mission":
-        string_query += "(TIME BETWEEN 843419539000 AND 1023754226000) AND "
+        string_query += "(TIME BETWEEN 843419539 AND 1023754226) AND "
     if filterData == "Late Mission":
-        string_query += "(TIME BETWEEN 1023759079000 AND 1241086949000) AND "
+        string_query += "(TIME BETWEEN 1023759079 AND 1241086949) AND "
 
     # If its both, we don't have to filter by time
     return string_query
@@ -387,8 +387,60 @@ def createQuery(dataDict):
     return string_query 
 
 
+# A function that creates a query based on user input
+def createQueryForMission(dataDict):
 
+    string_query = 'SELECT COUNT(TIME) FROM AIMSES_NORM WHERE '
 
+    # Looping through all keys in the dictionary
+    for key in dataDict: 
 
+        # 1. Check Filters
+        if key == "MLT":
+            string_query = getMLTQuery(string_query, dataDict[key])
+
+        elif key == "ILAT":
+            string_query = getILATQuery(string_query, dataDict[key])
+
+        elif key == "ALT":
+            string_query = getALTQuery(string_query, dataDict[key])
+
+        elif key == "SZA":
+            string_query = getSZAQuery(string_query, dataDict[key])
+
+        elif key == "F10.7":
+            string_query = getF107Query(string_query, dataDict[key])
+
+        elif key == "EFLUX":
+            string_query = getEFLUXQuery(string_query, dataDict[key])
+        
+        elif key == "NFLUX": 
+            string_query = getNFLUXQuery(string_query, dataDict[key])
+
+        elif key == "CONJUGATE SZA": 
+            string_query = getCONJUGATESZAQuery(string_query, dataDict[key])
+
+        elif key == "KP": 
+            string_query = getKPQuery(string_query, dataDict[key])
+
+        elif key == "AE": 
+            string_query = getAEQuery(string_query, dataDict[key])
+
+        elif key == "DST": 
+            string_query = getDSTQuery(string_query, dataDict[key])
+
+        elif key == "SOLAR WIND DRIVING": 
+            string_query = getNEWELLFLUXQuery(string_query, dataDict[key])
+
+        elif key == "LCA": 
+            string_query = getLCAQuery(string_query, dataDict[key])
+
+        elif key == "MECHANISMS": 
+            string_query = getMECHSQuery(string_query, dataDict[key])
+
+    early_mission_query = string_query + " (TIME BETWEEN 843419539 AND 1023754226)"
+    late_mission_query = string_query + " (TIME BETWEEN 1023759079 AND 1241086949)"
+
+    return early_mission_query, late_mission_query 
 
 
