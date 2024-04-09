@@ -1,105 +1,11 @@
 
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
-    // Function to generate Spectra
-    var inputData = '';
-    var inputDict = {};
-
-    // Gather data from visible text input fields
-    var textInputs = document.querySelectorAll('input[type="text"]:not([style*="display:none"])');
-    textInputs.forEach(function (input) {
-        var filterTitle = input.closest('.filterContainer').querySelector('.filterTitle').textContent;
-        if (input.value.trim() !== '') {
-            // Check if filter title exists in inputDict
-            if (!inputDict[filterTitle]){
-                // Create a new dictionary for the filter title
-                inputDict[filterTitle] = {}; 
-            }
-
-            // Assign the new value to the placeholder in the filter title dictionary
-            inputDict[filterTitle][input.name] = input.value;
-            
-            // Display results 
-            inputData += filterTitle + ' : ' + input.name + ': ' + input.value + '<br>';
-        }
-    });
-
-    // Gather data from visible checkboxes (both regular and radio)
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-    checkboxes.forEach(function (checkbox) {
-        var filterTitle = checkbox.closest('.spectraGenerationRequirementCategory').querySelector('.filterTitle').textContent;
-        
-        // Check if filter title exists in inputDict        
-        if (filterTitle in inputDict) {
-            inputDict[filterTitle].push(checkbox.parentNode.textContent.trim());
-        } else {
-            inputDict[filterTitle] = [checkbox.parentNode.textContent.trim()];
-        }
-
-        // Display results 
-        inputData += filterTitle + ' : ' + checkbox.parentNode.textContent.trim() + '<br>';
-    });
-
-    // Gather data from visible radio buttons
-    var radioButtons = document.querySelectorAll('input[type="radio"]:checked');
-    radioButtons.forEach(function (radio) {
-        // Check if the radio button is within a filterContainer
-        var filterContainer = radio.closest('.filterContainer');
-        if (filterContainer && filterContainer.style.display !== 'none') {
-            var filterTitleElement = filterContainer.querySelector('.filterTitle');
-            if (filterTitleElement) {
-                var filterTitle = filterTitleElement.textContent;
-                inputData += filterTitle + ' : ' + radio.parentNode.textContent.trim() + '<br>';
-
-                if (filterTitle in inputDict) {
-                    inputDict[filterTitle].push(radio.parentNode.textContent.trim());
-                } else {
-                    inputDict[filterTitle] = [radio.parentNode.textContent.trim()];
-                }
-            }
-        } 
-
-        // Check if the radio button is within a spectraGenerationRequirementCategory
-        var spectraCategory = radio.closest('.spectraGenerationRequirementCategory');
-        if (spectraCategory) {
-            var filterTitleElement = spectraCategory.querySelector('.filterTitle');
-            if (filterTitleElement) {
-                var filterTitle = filterTitleElement.textContent;
-                inputData += filterTitle + ' : ' + radio.parentNode.textContent.trim() + '<br>';
-                
-                if (filterTitle in inputDict) {
-                    inputDict[filterTitle].push(radio.parentNode.textContent.trim());
-                } else {
-                    inputDict[filterTitle] = [radio.parentNode.textContent.trim()];
-                }
-            }
-        }
-    });
-
-    // Gather data from visible dropdown menus
-    var selectElements = document.querySelectorAll('select');
-    selectElements.forEach(function (select) {
-        var filterTitle = select.closest('.filterContainer').querySelector('.filterTitle').textContent;
-        var selectedOption = select.options[select.selectedIndex].text;
-        if (selectedOption.trim() !== 'Select a Hemisphere' && selectedOption.trim() !== 'Select a Range' ) {
-            inputData += filterTitle + ' : ' + selectedOption + '<br>';
-            
-            // Check if filter title exists in inputDict
-            if (!inputDict[filterTitle]){
-                // Create a new dictionary for the filter title
-                inputDict[filterTitle] = {}; 
-            }
-
-            if (selectedOption == "Northern Hemisphere" || selectedOption == "Southern Hemisphere" || selectedOption == "Either" ){
-                inputDict[filterTitle]["Hemisphere"] = selectedOption;
-            }
-            else {
-                // Assign the new value to the placeholder in the filter title dictionary
-                inputDict[filterTitle]["Range"] = selectedOption;
-            }
-        }
-    });
-
+   
+    // userInput = [inputDict, inputData]
+    var userInput = getUserInput();
+    var inputDict = userInput[0];
+    var inputData = userInput[1];
 
     // Display data in the modal if there is any input or selection
     if (validateFilters()) {
@@ -189,4 +95,154 @@ function createFilterSelectionSummary(inputDict) {
     }
 
     return selectionAndFilterSummary
+}
+
+
+// Gets Early and Late Mission Data
+function generateMissionCount() {
+
+    var earlyMissionData = document.getElementById('earlyMissionRowData');
+    var lateMissionData = document.getElementById('lateMissionRowData');
+    earlyMissionData.innerHTML = "--";
+    lateMissionData.innerHTML = "--";
+
+    // Toggle the 'active' class on the button
+    var generateMissionButton = document.getElementById('generateMissionButton');
+    generateMissionButton.classList.toggle('active');
+
+    // userInput = [inputDict, inputData]
+    var userInput = getUserInput();
+    var data = userInput[0];
+
+    if (validateFilters()) {
+        fetch('/mission-data', { 
+            method: 'POST', 
+            headers: { 
+              'Content-Type': 'application/json'
+            }, 
+            body: JSON.stringify({data: data}) 
+          }) 
+          .then(response => response.json()) 
+          .then(result => { 
+            
+            console.log(result);
+
+            earlyMissionData.innerHTML = result.result[0].toString() + " rows of Data";
+            lateMissionData.innerHTML = result.result[1].toString() + " rows of Data";
+
+            if (generateMissionButton.classList.contains('active')) {
+                // If the button already has 'active' class, remove it
+                generateMissionButton.classList.remove('active');
+            }
+
+          }) 
+          .catch(error => { 
+            console.error('Error:', error); 
+          }); 
+    }
+}
+
+
+// Gets User input and stores them in both a dictionary and a text format
+function getUserInput() {
+       // Function to generate Spectra
+       var inputData = '';
+       var inputDict = {};
+   
+       // Gather data from visible text input fields
+       var textInputs = document.querySelectorAll('input[type="text"]:not([style*="display:none"])');
+       textInputs.forEach(function (input) {
+           var filterTitle = input.closest('.filterContainer').querySelector('.filterTitle').textContent;
+           if (input.value.trim() !== '') {
+               // Check if filter title exists in inputDict
+               if (!inputDict[filterTitle]){
+                   // Create a new dictionary for the filter title
+                   inputDict[filterTitle] = {}; 
+               }
+   
+               // Assign the new value to the placeholder in the filter title dictionary
+               inputDict[filterTitle][input.name] = input.value;
+               
+               // Display results 
+               inputData += filterTitle + ' : ' + input.name + ': ' + input.value + '<br>';
+           }
+       });
+   
+       // Gather data from visible checkboxes (both regular and radio)
+       var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+       checkboxes.forEach(function (checkbox) {
+           var filterTitle = checkbox.closest('.spectraGenerationRequirementCategory').querySelector('.filterTitle').textContent;
+           
+           // Check if filter title exists in inputDict        
+           if (filterTitle in inputDict) {
+               inputDict[filterTitle].push(checkbox.parentNode.textContent.trim());
+           } else {
+               inputDict[filterTitle] = [checkbox.parentNode.textContent.trim()];
+           }
+   
+           // Display results 
+           inputData += filterTitle + ' : ' + checkbox.parentNode.textContent.trim() + '<br>';
+       });
+   
+       // Gather data from visible radio buttons
+       var radioButtons = document.querySelectorAll('input[type="radio"]:checked');
+       radioButtons.forEach(function (radio) {
+           // Check if the radio button is within a filterContainer
+           var filterContainer = radio.closest('.filterContainer');
+           if (filterContainer && filterContainer.style.display !== 'none') {
+               var filterTitleElement = filterContainer.querySelector('.filterTitle');
+               if (filterTitleElement) {
+                   var filterTitle = filterTitleElement.textContent;
+                   inputData += filterTitle + ' : ' + radio.parentNode.textContent.trim() + '<br>';
+   
+                   if (filterTitle in inputDict) {
+                       inputDict[filterTitle].push(radio.parentNode.textContent.trim());
+                   } else {
+                       inputDict[filterTitle] = [radio.parentNode.textContent.trim()];
+                   }
+               }
+           } 
+   
+           // Check if the radio button is within a spectraGenerationRequirementCategory
+           var spectraCategory = radio.closest('.spectraGenerationRequirementCategory');
+           if (spectraCategory) {
+               var filterTitleElement = spectraCategory.querySelector('.filterTitle');
+               if (filterTitleElement) {
+                   var filterTitle = filterTitleElement.textContent;
+                   inputData += filterTitle + ' : ' + radio.parentNode.textContent.trim() + '<br>';
+                   
+                   if (filterTitle in inputDict) {
+                       inputDict[filterTitle].push(radio.parentNode.textContent.trim());
+                   } else {
+                       inputDict[filterTitle] = [radio.parentNode.textContent.trim()];
+                   }
+               }
+           }
+       });
+   
+       // Gather data from visible dropdown menus
+       var selectElements = document.querySelectorAll('select');
+       selectElements.forEach(function (select) {
+           var filterTitle = select.closest('.filterContainer').querySelector('.filterTitle').textContent;
+           var selectedOption = select.options[select.selectedIndex].text;
+           if (selectedOption.trim() !== 'Select a Hemisphere' && selectedOption.trim() !== 'Select a Range' ) {
+               inputData += filterTitle + ' : ' + selectedOption + '<br>';
+               
+               // Check if filter title exists in inputDict
+               if (!inputDict[filterTitle]){
+                   // Create a new dictionary for the filter title
+                   inputDict[filterTitle] = {}; 
+               }
+   
+               if (selectedOption == "Northern Hemisphere" || selectedOption == "Southern Hemisphere" || selectedOption == "Either" ){
+                   inputDict[filterTitle]["Hemisphere"] = selectedOption;
+               }
+               else {
+                   // Assign the new value to the placeholder in the filter title dictionary
+                   inputDict[filterTitle]["Range"] = selectedOption;
+               }
+           }
+       });
+
+    return [inputDict, inputData]
 }
