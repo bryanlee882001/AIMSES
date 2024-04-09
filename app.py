@@ -13,7 +13,6 @@ def processData():
     # 1: Create String Query Based on Selection Criterias and Filters
     string_query = create_query.createQuery(data)
 
-
     # 2: Get Information 
     queried_results = query_from_db.queryDataDict(string_query)
 

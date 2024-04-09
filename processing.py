@@ -22,14 +22,26 @@ def processQueryData(data, queried_list_of_dict):
     if (len(list_of_time) == 0):
         return 0
     
+    for ii in range(len(list_of_time)): 
+        spectra = queried_list_of_dict["Spectra"]
+        if spectra == "Downward":
+            # Go to the downward tables to get el_0_lc and el_180_lc 
+            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
+            dataDict = query_from_db.queryDataDict(query)
+
+        elif spectra == "Upward":
+            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
+            dataDict = query_from_db.queryDataDict(query)
+
+        elif spectra == "Perpendicular":
+            query = f"SELECT * FROM downgoing_el_0_lc WHERE TIME = {list_of_time[ii]}"
+            dataDict = query_from_db.queryDataDict(query)
+
     # Get List of Spectra Table Names tuples (TIME, Table Name) from Reference Table
     table_names = getSpectraTablesFromTime(list_of_time)
-
-    # Get Rows of data in each table based on given time 
-    rows_of_spectra_data = getSpectraTableRows(table_names)    
-    
     
 
+    
     # Question:
     # - What should be queried for raw data?
     # - If User selects upgoing and downgoing we put them on the same graph?
