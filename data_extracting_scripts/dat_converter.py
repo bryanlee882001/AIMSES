@@ -49,8 +49,6 @@ def GetFiles(path,file_extension):
                 print("\n")
 
 
-
-
 # A function that reads and extracts data from the .dat file and stores it in an array
 def ReadDatFile(path,fileName):
     
@@ -96,8 +94,6 @@ def ReadDatFile(path,fileName):
         print(f"An error occurred when reading {fileName}: {e}")
 
 
-
-
 # A function that reads .csv file and extract its data
 def ReadCSVFile(path, fileName):
     
@@ -135,8 +131,6 @@ def ReadCSVFile(path, fileName):
     except Exception as e:
         print(f"An exception of type {type(e).__name__} occurred when determining reading .CSV file {fileName}: {e}")
         return None  
-
-
 
 
 # A function that pushes data from .dat files into the database
@@ -237,8 +231,6 @@ def PushToDatabase(records, fileName):
         # Ensure the connection is closed in case of an exception
         if 'conn' in locals():
             conn.close()
-
-
 
 
 if __name__ == "__main__":
