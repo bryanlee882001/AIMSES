@@ -23,75 +23,45 @@ def processQueryData(data, queried_list_of_dict):
     if (len(list_of_time) == 0):
         return 0
     
-    spectra = data["Spectra"]
-    # Define a mapping of spectra values to table names
-    spectra_tables = {
-        "Downward": {"el_0_lc": "DOWNGOING_el_0_lc", "el_180_lc": "DOWNGOING_el_180_lc"},
-        "Upward": {"el_0_lc": "UPGOING_el_0_lc", "el_180_lc": "UPGOING_el_180_lc"},
-        "Perpendicular": {"perpendicular": "PERPENDICULAR"}
-    }
 
-    # Loop over each time in the list_of_time
-    for time in list_of_time:
-        # Get the table names based on the spectra value
-        tables = spectra_tables.get(spectra)
+    dict_of_query = { "Downward" : [],
+                      "Upward" : [], 
+                      "Mirroring" : []}
+    
+    if "Spectra" in data: 
+        spectra = data["Spectra"][0]
 
-        if tables:
-            # Iterate over each table and execute the query
-            for column, table_name in tables.items():
-                query = f"SELECT * FROM {table_name} WHERE TIME = {time}"
-                data_dict = query_from_db.queryDataDict(query)
-                # Process the data_dict as needed
-                # try:
-                #     # Connect to MySQL
-                #     connection = mysql.connector.connect(**db_config)
+        # Loop over each time in the list_of_time
+        for time in list_of_time:
 
-                #     # Create cursor
-                #     cursor = connection.cursor()
+            if spectra == "Downward":
+                # get el_0_lc and el_180_lc for upgoing 
+                dict_of_query[spectra].append(f"SELECT * FROM DOWNGOING_el_0_lc WHERE TIME = {time}")
+                dict_of_query[spectra].append(f"SELECT * FROM DOWNGOING_el_180_lc WHERE TIME = {time}")
 
-                #     # Execute SQL query
-                #     query = "SELECT * FROM your_table"
-                #     cursor.execute(query)
+            elif spectra == "Upward":
+                # get el_0_lc and el_180_lc for downgoing
+                dict_of_query[spectra].append(f"SELECT * FROM UPGOING_el_0_lc WHERE TIME = {time}")
+                dict_of_query[spectra].append(f"SELECT * FROM UPGOING_el_180_lc WHERE TIME = {time}")
 
-                #     # Fetch data as a list of tuples
-                #     data = cursor.fetchall()
+            elif spectra == "Mirroring":
+                # get perpendicular (el_90_lcp12 + el_270_lcp12 / 2)
+                dict_of_query[spectra].append(f"SELECT * FROM PERPENDICULAR WHERE TIME = {time}")
 
-                #     # Process the data if needed
-                #     for row in data:
-                #         print(row)  # Example: Print each row
+        # Compute Query 
+        return dict_of_query 
 
-                # except mysql.connector.Error as error:
-                #     print("Error fetching data from MySQL:", error)
-
-                # finally:
-                #     # Close cursor and connection
-                #     if connection.is_connected():
-                #         cursor.close()
-                #         connection.close()
+    return 0
+                
 
 
+def getStatistics(list_of_spectral_data):
 
-    # spectra = data["Spectra"]
-    # for ii in range(len(list_of_time)): 
-        
-    #     if spectra == "Downward":
-    #         # Go to the downward tables to get el_0_lc and el_180_lc 
-    #         query_el_0_lc = f"SELECT * FROM DOWNGOING_el_0_lc WHERE TIME = {list_of_time[ii]}"
-    #         query_el_180_lc = f"SELECT * FROM DOWNGOING_el_180_lc WHERE TIME = {list_of_time[ii]}"
-    #         dataDict_el_0_lc = query_from_db.queryDataDict(query_el_0_lc)
-    #         dataDict_el_180_lc = query_from_db.queryDataDict(query_el_180_lc)
-
-    #     elif spectra == "Upward":
-    #         query_el_0_lc = f"SELECT * FROM UPGOING_el_0_lc WHERE TIME = {list_of_time[ii]}"
-    #         query_el_180_lc = f"SELECT * FROM GOING_el_180_lc WHERE TIME = {list_of_time[ii]}"
-    #         dataDict_el_0_lc = query_from_db.queryDataDict(query_el_0_lc)
-    #         dataDict_el_180_lc = query_from_db.queryDataDict(query_el_180_lc)
-
-    #     elif spectra == "Perpendicular":
-    #         query = f"SELECT * FROM PERPENDICULAR WHERE TIME = {list_of_time[ii]}"
-    #         dataDict = query_from_db.queryDataDict(query)    
+    # Get User's Input on Statistics
+    # spectra = data["Statistics"] 
 
 
+    return 0
 
 
 def getSpectraTablesFromTime(list_of_time):
