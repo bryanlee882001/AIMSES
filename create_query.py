@@ -325,6 +325,23 @@ def genericFilterQuery(string_query, filterData, column):
 # A function that creates a query based on user input
 def createQuery(dataDict):
 
+    if ("MLT" not in dataDict and
+       "ILAT" not in dataDict and 
+       "ALT" not in dataDict and
+       "SZA" not in dataDict and
+       "F10.7" not in dataDict and
+       "EFLUX" not in dataDict and
+       "NFLUX" not in dataDict and
+       "CONJUGATE SZA" not in dataDict and
+       "KP" not in dataDict and
+       "AE" not in dataDict and
+       "DST" not in dataDict and
+       "SOLAR WIND DRIVING" not in dataDict and 
+       "LCA" not in dataDict and 
+       "MECHANISMS" not in dataDict
+        ):
+        return "SELECT TIME FROM AIMSES_NORM"
+
     string_query = 'SELECT TIME FROM AIMSES_NORM WHERE '
 
     # Looping through all keys in the dictionary
@@ -381,8 +398,8 @@ def createQuery(dataDict):
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
 
-    # Comment this. Only for Testing purposes: 
-    string_query += " LIMIT 2"
+    # # Comment this. Only for Testing purposes: 
+    # string_query += " LIMIT 2"
 
     return string_query 
 

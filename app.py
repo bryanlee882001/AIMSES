@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 import create_query
 import processing
-import utility
 import query_from_db
 
 app = Flask(__name__)
@@ -17,11 +16,14 @@ def processData():
     # 2: Get Information 
     queried_results = query_from_db.queryDataDict(string_query)
 
-    # 3. Process Data
-    # processed_result = processing.processQueryData(data, queried_results)
+    # 3. Process Data and Query from CDF_DATA / el_0_lc / el_180_lc / PERPENDICULAR
+    process_query = processing.processQueryData(data, queried_results)
+    spectral_data = query_from_db.queryFromDict(process_query)
     
-    # result = f'{data}'
-    result = (data, string_query)
+    # 4. Compute Statistics
+    result = spectral_data
+    # result = processing.getStatistics(spectral_data) 
+
     return jsonify({'result': result}) 
 
 
@@ -40,14 +42,6 @@ def missionData():
 
 @app.route("/")
 def index():
-
-    # data = fetchData()
-    
-    # if data is None:
-    #     # Handle case where data retrieval failed
-    #     error_message = "Failed to fetch data from database."
-    #     return render_template("error.html", error_message=error_message)
-    # return render_template("index.html", data=data)
     return render_template("index.html")
 
 
