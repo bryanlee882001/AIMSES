@@ -1,3 +1,5 @@
+// Global Variable for Final Results
+var resultData = {}
 
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
@@ -10,14 +12,30 @@ function generateSpectra() {
     // Display data in the modal if there is any input or selection
     if (validateFilters()) {
         if (inputData.trim() !== ''){
-            var modalContent = document.getElementById('modalContent');
-            modalContent.innerHTML = createFilterSelectionSummary(inputDict);
-    
-            // Open the modal
-            openModal();
+            // Summary Statistics
+            // var modalContent = document.getElementById('modalContent');
+            // modalContent.innerHTML = createFilterSelectionSummary(inputDict);
             
             // Send data to backend
-            sendDataToBackend(inputDict);
+            sendDataToBackend(inputDict).then(result => {    
+                
+                // Assign to global Variable
+                resultData = result;
+
+                // // Print Results for Debugging
+                // PrintResultData();
+                // console.log(resultData);
+
+                // Create Charts
+                createCharts();
+
+                // Open the modal
+                openModal();
+
+
+            }).catch(error => {
+                console.error('Error:', error);
+            });
         }
         else {
             alert("No Filters Selected");
@@ -28,7 +46,8 @@ function generateSpectra() {
 
 // Send data to backend in a dictionary format from generateSpectra()
 function sendDataToBackend(data) {  
-    fetch('/process-data', { 
+
+    return fetch('/process-data', { 
         method: 'POST', 
         headers: { 
           'Content-Type': 'application/json'
@@ -36,11 +55,9 @@ function sendDataToBackend(data) {
         body: JSON.stringify({data: data}) 
       }) 
       .then(response => response.text()) 
-      .then(result => { 
-        console.log(result); 
-      }) 
       .catch(error => { 
         console.error('Error:', error); 
+        throw error; // rethrow the error to be caught by the caller
       }); 
 }
 
@@ -246,3 +263,4 @@ function getUserInput() {
 
     return [inputDict, inputData]
 }
+

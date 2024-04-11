@@ -18,12 +18,17 @@ def processData():
 
     # 3. Process Data and Query from CDF_DATA / el_0_lc / el_180_lc / PERPENDICULAR
     process_query = processing.processQueryData(data, queried_results)
-    spectral_data = query_from_db.queryFromDict(process_query)
     
-    # 4. Compute Statistics
-    result = spectral_data
-    # result = processing.getStatistics(spectral_data) 
+    if (process_query == 0): 
+        return jsonify({'result': 0})     
 
+    # 4. Query data and return values in the form of a dictionary 
+    spectral_data = query_from_db.queryFromSpectraDict(process_query)
+    
+    # 5. Compute Statistics
+    result = processing.getStatistics(data, spectral_data) 
+    
+    # result = spectral_data
     return jsonify({'result': result}) 
 
 
