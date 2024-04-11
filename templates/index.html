@@ -18,6 +18,8 @@
         <script src="{{ url_for('static', filename='scripts/modal.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
         <title>AIMSES</title>
     </head>
@@ -780,7 +782,7 @@
             <div class="spectraGenerationRequirementCategory" id="Statistics">
                 <div class = "filterTitle">Statistics</div>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Mean
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">+1σ
@@ -809,7 +811,7 @@
             <div class="spectraGenerationRequirementCategory" id="Spectra">
                 <div class = "filterTitle">Spectra</div>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Downward
-                    <input type="radio" name="spectra">
+                    <input type="radio" name="spectra" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Upward 
@@ -872,10 +874,119 @@
             <div class="spectraPanelContiner">
                 <span class="close" onclick="closeModal()">&times;</span>
                 <h2>Spectra</h2>
-                <div id="modalContent" class="modalContent"></div>
+                <!-- <div id="modalContent" class="modalContent"></div> -->
                 <!-- <canvas id="myChart" style="width:80%;max-width:600px; max-height:1000px;"></canvas>   -->
+                <div id="chartsContainer">
+                    <canvas id="myChart" style="width:80%; height: 80%;"></canvas>  
+                </div>
         </div>
 
+        <!-- Data from Backend will be sent here -->
+        <div id="resultElement"></div>
+
+        <script>
+
+                            
+            function createCharts() {
+
+                // Get the canvas element
+                var canvas = document.getElementById('myChart');
+                var ctx = canvas.getContext('2d');
+
+                var jsonData = JSON.parse(resultData);
+
+                var xValues = Array.from({length: 47}, (_, index) => index + 1);
+                var yValues = [];
+
+
+                // console.log(jsonData.result.el_0_lc.Mean.length);
+                // console.log(jsonData.result.el_180_lc.Mean);
+
+                // Iterate over each key in the resultData
+                for (var key in jsonData.result) {
+                    if (jsonData.result.hasOwnProperty(key)) {
+                        // Get the statistics object for the current key
+                        var statistics = jsonData.result[key];
+
+                        // Iterate over each statistic (e.g., "Mean", "Median", etc.)
+                        for (var statKey in statistics) {
+                            if (statistics.hasOwnProperty(statKey)) {
+                                // Create a dataset object
+                                var dataset = {
+                                    label: key + ' _ ' + statKey, // Set label as key + statistic type
+                                    data: statistics[statKey], // Set data as the values for the statistic
+                                    borderColor: "rgba(255,255,255,0.2)",
+                                    backgroundColor: "rgba(255,255,255,1.0)", 
+                                    yAxisID: key === 'el_0_lc' ? 'y' : 'y1' // Set yAxisID based on key
+                                };
+
+                                // Push the dataset object into the datasets array
+                                yValues.push(dataset);
+                            }
+                        }
+                    }
+                }
+
+                var finalData = {
+                    labels: xValues,
+                    datasets: yValues,
+                    lineTension: 0,
+                }
+
+                // Create a new chart instance
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: finalData, 
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        title: {
+                            display: true,
+                            text: 'el_0_lc'
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left'
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right'
+                            },
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Number of Values'
+                                }
+                            }],
+                            yAxes: [{
+                                ticks: {
+                                    maxTicksLimit: 5
+                                }, 
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Value'
+                                },
+                            }]
+                        }
+                    }
+                });
+            }
+
+            // Function to generate a random color
+            function getRandomColor() {
+                var letters = '0123456789ABCDEF';
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            window.onload = createChart; 
+        </script>
 
         <!-- <script>
             // Get The Array here to display graph:

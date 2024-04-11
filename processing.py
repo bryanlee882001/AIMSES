@@ -1,6 +1,6 @@
-import app
 import query_from_db
-import mysql.connector
+import numpy as np
+import statistics
 from collections import defaultdict
 
 
@@ -23,10 +23,9 @@ def processQueryData(data, queried_list_of_dict):
     if (len(list_of_time) == 0):
         return 0
     
-
-    dict_of_query = { "Downward" : [],
-                      "Upward" : [], 
-                      "Mirroring" : []}
+    dict_of_query = { "Downward" : { "el_0_lc" : [], "el_180_lc" : []},
+                      "Upward" : { "el_0_lc" : [], "el_180_lc" : []}, 
+                      "Mirroring" : { "perpendicular" : []}}
     
     if "Spectra" in data: 
         spectra = data["Spectra"][0]
@@ -36,17 +35,17 @@ def processQueryData(data, queried_list_of_dict):
 
             if spectra == "Downward":
                 # get el_0_lc and el_180_lc for upgoing 
-                dict_of_query[spectra].append(f"SELECT * FROM DOWNGOING_el_0_lc WHERE TIME = {time}")
-                dict_of_query[spectra].append(f"SELECT * FROM DOWNGOING_el_180_lc WHERE TIME = {time}")
+                dict_of_query[spectra]["el_0_lc"].append(f"SELECT * FROM DOWNGOING_el_0_lc WHERE TIME = {time}")
+                dict_of_query[spectra]["el_180_lc"].append(f"SELECT * FROM DOWNGOING_el_180_lc WHERE TIME = {time}")
 
             elif spectra == "Upward":
                 # get el_0_lc and el_180_lc for downgoing
-                dict_of_query[spectra].append(f"SELECT * FROM UPGOING_el_0_lc WHERE TIME = {time}")
-                dict_of_query[spectra].append(f"SELECT * FROM UPGOING_el_180_lc WHERE TIME = {time}")
+                dict_of_query[spectra]["el_0_lc"].append(f"SELECT * FROM UPGOING_el_0_lc WHERE TIME = {time}")
+                dict_of_query[spectra]["el_180_lc"].append(f"SELECT * FROM UPGOING_el_180_lc WHERE TIME = {time}")
 
             elif spectra == "Mirroring":
                 # get perpendicular (el_90_lcp12 + el_270_lcp12 / 2)
-                dict_of_query[spectra].append(f"SELECT * FROM PERPENDICULAR WHERE TIME = {time}")
+                dict_of_query[spectra]["perpendicular"].append(f"SELECT * FROM PERPENDICULAR WHERE TIME = {time}")
 
         # Compute Query 
         return dict_of_query 
@@ -55,13 +54,66 @@ def processQueryData(data, queried_list_of_dict):
                 
 
 
-def getStatistics(list_of_spectral_data):
+def getStatistics(data, spectral_data):
+
+    computedValue, computed_el_0_lc, computed_el_180_lc, computed_perpendicular = [], [], [], []
 
     # Get User's Input on Statistics
-    # spectra = data["Statistics"] 
+    if "Statistics" not in data:
+        return 0 
+    
+    finalSpectraDict = {}
 
+    for spectra, fieldDict in spectral_data.items():
+        for field, list_of_spectral_data in fieldDict.items():
 
-    return 0
+            if list_of_spectral_data: 
+                final_list_spectral_data = list_of_spectral_data[0]
+
+                # Initialize an empty list to store the sums
+                index_values = []
+
+                # Iterate over each sublist in list_of_spectral_data
+                for lst in final_list_spectral_data:
+
+                    # Remove the first three and last elements from each sublist
+                    lst = lst[3:]
+                    # Append the modified sublist to sums
+                    index_values.append(lst)
+
+                # Transpose the modified lists to get the values at each index
+                transposed_values = zip(*index_values)
+
+                # Initialize empty lists to store the calculated statistics for each index
+                statistics_required = data["Statistics"]
+                computed_statistics = {stat: [] for stat in statistics_required}
+
+                for elements in transposed_values:
+                    
+                    if "Mean" in statistics_required:
+                        computed_statistics["Mean"].append(np.mean(elements))
+
+                    # Compute standard deviation
+                    std_dev = np.std(elements)
+
+                    if "+1\u03c3" in statistics_required:
+                        computed_statistics["+1\u03c3" ].append(np.mean(elements) - std_dev)
+                    
+                    if "-1\u03c3" in statistics_required:
+                        computed_statistics["-1\u03c3"].append(np.mean(elements) + std_dev)
+
+                    if "Median" in statistics_required:
+                        computed_statistics["Median"].append(statistics.median(elements))
+
+                    if "25%" in statistics_required:
+                        computed_statistics["25%"].append(np.percentile(elements, 25))
+
+                    if "75%" in statistics_required:
+                        computed_statistics["75%"].append(np.percentile(elements, 75))
+
+                finalSpectraDict[field] = computed_statistics
+                
+    return finalSpectraDict
 
 
 def getSpectraTablesFromTime(list_of_time):
@@ -77,28 +129,6 @@ def getSpectraTablesFromTime(list_of_time):
 
     return data
     
-
-def getSpectraTableRows(table_names):
-    """A function that queries rows of data in each table based on given time"""
-
-    # Separate Time based on Spectra Tables
-    # table_names_dict = defaultdict(list)
-    # for time, spectra_table_name in table_names:
-    #     table_names_dict[spectra_table_name].append(time)  
-
-    # # Now the dictionary is stored in this format: table_names_dict { spectra_table_name : [time1, time2, time3]}
-    # rows_of_spectra_data = []
-    # for spectra_table_name, time in table_names_dict.items():
-        
-    #     # Query the time 
-    #     # query = f"SELECT * FROM {spectra_table_name} WHERE TIME IN ({",".join(table_names_dict[spectra_table_name])})"
-
-    #     # Execute query to get data from database in dictionary format 
-    #     # table_row_data = query_from_db.queryDataDict(query)
-
-    #     # rows_of_spectra_data.append(table_row_data)
-
-    return 0
 
 
         
