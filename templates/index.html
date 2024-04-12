@@ -881,11 +881,8 @@
                 </div>
         </div>
 
-        <!-- Data from Backend will be sent here -->
-        <div id="resultElement"></div>
 
         <script>
-
                             
             function createCharts() {
 
@@ -895,148 +892,147 @@
 
                 var jsonData = JSON.parse(resultData);
 
-                var xValues = Array.from({length: 47}, (_, index) => index + 1);
+                var xValues = jsonData.result.xAxis; 
                 var yValues = [];
 
+                // Define a lookup table for common properties
+                const propertiesLookup = {
+                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'Mean' },
+                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'Median' },
+                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: '+1 sigma' },
+                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: '+1 sigma' },
+                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: '25 percentile' },
+                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: '75 percentile' }
+                };
 
-                // console.log(jsonData.result.el_0_lc.Mean.length);
-                // console.log(jsonData.result.el_180_lc.Mean);
-
-                // Iterate over each key in the resultData
-                for (var key in jsonData.result) {
-                    if (jsonData.result.hasOwnProperty(key)) {
+                // Iterate over each statistic (e.g., "Mean", "Median", etc.)
+                for (var statKey in jsonData.result.yAxis) {
+                    if (jsonData.result.yAxis.hasOwnProperty(statKey) && propertiesLookup.hasOwnProperty(statKey)) {
                         // Get the statistics object for the current key
-                        var statistics = jsonData.result[key];
+                        var statData = jsonData.result.yAxis[statKey];
 
-                        // Iterate over each statistic (e.g., "Mean", "Median", etc.)
-                        for (var statKey in statistics) {
-                            if (statistics.hasOwnProperty(statKey)) {
-                                // Create a dataset object
-                                var dataset = {
-                                    label: key + ' _ ' + statKey, // Set label as key + statistic type
-                                    data: statistics[statKey], // Set data as the values for the statistic
-                                    borderColor: "rgba(255,255,255,0.2)",
-                                    backgroundColor: "rgba(255,255,255,1.0)", 
-                                    yAxisID: key === 'el_0_lc' ? 'y' : 'y1' // Set yAxisID based on key
-                                };
+                        // Create a dataset object using common properties
+                        var dataset = { label: statKey, data: statData, ...propertiesLookup[statKey] };
 
-                                // Push the dataset object into the datasets array
-                                yValues.push(dataset);
-                            }
-                        }
+                        // Push the dataset object into the datasets array
+                        yValues.push(dataset);
                     }
                 }
 
-                var finalData = {
-                    labels: xValues,
-                    datasets: yValues,
-                    lineTension: 0,
-                }
+                console.log(yValues);
+                console.log(xValues);
+
+                // Define an array to keep track of displayed exponents
+                var displayedExponents = [];
+
+                // Create a dynamic scales object based on yAxisIDs present in yValues
+                var scales = {};
+                yValues.forEach(dataset => {
+                    scales[dataset.yAxisID] = {
+                        
+                        type: 'logarithmic',
+                        display: true,
+                        beginAtZero: false,
+                        position: 'left',
+                        ticks: {
+                            min: Math.pow(10, Math.floor(Math.log10(Math.min(...yValues)))), 
+                            max: Math.pow(10, Math.ceil(Math.log10(Math.max(...yValues)))), 
+                            callback: (value, index, values) => {
+                                if (value === 0) return value; // Return 0 explicitly
+                                const exponent = Math.floor(Math.log10(value));
+                                if (!displayedExponents.includes(exponent)) { 
+                                    displayedExponents.push(exponent); 
+                                    return `10^${exponent}`; 
+                                }
+                                return '';
+                            },
+                            autoSkip: false, 
+                            minor: {
+                                count: 9, 
+                                stepSize: 10 
+                            },
+                            maxTicksLimit: 6 
+                        },
+                        title: {
+                            display: true,
+                            text: 'dEFlux'
+                        }
+                    };
+                });
+                
+                console.log(xValues);
+
+                // Add x-axis scale at the end
+                scales['x'] = {
+                    type: 'logarithmic',
+                    display: true,
+                    ticks: {
+                        min: 10, // Set min value to 10
+                        max: Math.pow(10, Math.ceil(Math.log10(Math.max(...xValues)))), // Set max to the highest power of 10 in xValues
+                        callback: (value, index, values) => {
+                            if (value === 0) return value; // return 0 explicitly
+                            if (value === 1) return 10; // return 10 explicitly
+                            return value === Math.pow(10, Math.floor(Math.log10(value))) ? value : ''; // return the value only if it's a power of 10, otherwise return an empty string
+                        },
+                        autoSkip: false, // Disable auto skipping
+                        stepSize: 'logarithmic', // Increment by 10
+                        minor: {
+                            count: 9, 
+                            stepSize: 10 
+                        },
+                        maxTicksLimit: 6 
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Energy (eV)',
+                        color: 'white'
+                    },
+                    title: {
+                            display: true,
+                            text: 'Energy (eV)'
+                    }
+                };
+                
+                // Draw Border
+                const chartAreaBorder = {
+                    id: 'chartAreaBorder',
+                    beforeDraw(chart, args, options) {
+                        const {ctx, chartArea: {left, top, width, height}} = chart;
+                        ctx.save();
+                        ctx.strokeStyle = options.borderColor;
+                        ctx.lineWidth = options.borderWidth;
+                        ctx.setLineDash(options.borderDash || []);
+                        ctx.lineDashOffset = options.borderDashOffset;
+                        ctx.strokeRect(left, top, width, height);
+                        ctx.restore();
+                    }
+                };
 
                 // Create a new chart instance
                 var myChart = new Chart(ctx, {
                     type: 'line',
-                    data: finalData, 
+                    data: {labels: xValues, datasets: yValues, lineTension: 0.4}, 
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
+                        maintainAspectRatio: true,
                         title: {
                             display: true,
-                            text: 'el_0_lc'
+                            text: 'Spectra Graph'
                         },
-                        scales: {
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left'
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right'
-                            },
-                            xAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Number of Values'
-                                }
-                            }],
-                            yAxes: [{
-                                ticks: {
-                                    maxTicksLimit: 5
-                                }, 
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Value'
-                                },
-                            }]
-                        }
-                    }
+                        plugins: {
+                            chartAreaBorder: {
+                                borderColor: 'rgb(255,255,255,0.5)',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: scales
+                    },
+                    plugins: [chartAreaBorder]
                 });
-            }
-
-            // Function to generate a random color
-            function getRandomColor() {
-                var letters = '0123456789ABCDEF';
-                var color = '#';
-                for (var i = 0; i < 6; i++) {
-                    color += letters[Math.floor(Math.random() * 16)];
-                }
-                return color;
             }
 
             window.onload = createChart; 
         </script>
-
-        <!-- <script>
-            // Get The Array here to display graph:
-            const xValues = [50,60,70,80,90,100,110,120,130,140,150];
-            const yValues = [7,8,8,9,9,9,10,11,14,14,15];
-            
-            const testChart = document.getElementById('myChart').getContext('2d');
-            new Chart(testChart, {
-                type: "line",
-                data: {
-                    labels: xValues,
-                    datasets: [{
-                    fill: false,
-                    lineTension: 0,
-                    backgroundColor: "rgba(255,255,255,1.0)",
-                    borderColor: "rgba(255,255,255,0.2)",
-                    data: yValues
-                    }]
-                },
-                options: {
-                    legend: {display: false},
-                    scales: {
-                        yAxes: [{
-                            // ticks: {min: 6, max:16},
-                            // display: true,
-                                gridLines: {
-                                    color: '#656565',
-                                    lineWidth: 0.3
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Y-Axis'
-                                }
-                            }],
-                        xAxes: [{
-                            // display: true,
-                            gridLines: {
-                                color: '#656565',
-                                lineWidth: 0.3
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'X-Axis'
-                            }
-                        }]
-                    }
-                }
-            });
-            
-        </script> -->
 
         <div class="background"></div>
     </body>
