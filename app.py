@@ -16,10 +16,10 @@ def processData():
     # 2: Get Information 
     queried_results = query_from_db.queryDataDict(string_query)
 
-    # 3. Process Data and Query from CDF_DATA / el_0_lc / el_180_lc / PERPENDICULAR
+    # 3. Process Data and Query from CDF_DATA / UPGOING / DOWNGOING / PERPENDICULAR 
     process_query = processing.processQueryData(data, queried_results)
     
-    if (process_query == 0): 
+    if process_query is None: 
         return jsonify({'result': 0})     
 
     # 4. Query data and return values in the form of a dictionary 
@@ -28,7 +28,7 @@ def processData():
     # 5. Compute Statistics
     result = processing.getStatistics(data, spectral_data) 
     
-    # result = spectral_data
+    # result = (final x values, final y values)
     return jsonify({'result': result}) 
 
 

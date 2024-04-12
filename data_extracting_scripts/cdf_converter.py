@@ -182,14 +182,18 @@ def CompileDataIntoQueryFormat(varDict: dict, fileName: str):
                 spectraDict = CheckSpectraFromNormalizedDB(list_of_time, column)
 
                 # Create Alternate Table 
-                CreateAltAndInsertTable(column, altDataArr, spectraDict)
+                CreateAltAndInsertSpectraTable(column, altDataArr, spectraDict)
 
             # To Determine Perpendicular (Computed outside for loop)
             if column == "el_90_lcp12":
                 perpendicularTables[column] = altDataArr
             if column == "el_270_lcp12":
                 perpendicularTables[column] = altDataArr
-    
+
+            # To Insert el_en into DB
+            if column == "el_en":
+                CreateAltAndInsertTable(column, altDataArr)
+
     # Compute Perpendicular values
     len_el_90_lcp12 = len(perpendicularTables["el_90_lcp12"])
     len_el_270_lcp12 = len(perpendicularTables["el_270_lcp12"])
@@ -243,7 +247,6 @@ def CheckSpectraFromNormalizedDB(list_of_time: list, column: str):
         cursor = conn.cursor(dictionary=True)
 
         # Execute the query with the list of times as parameters
-        # cursor.execute(query, list_of_time)
         cursor.execute(query)
 
         # Fetch all results
@@ -289,7 +292,7 @@ def CheckSpectraFromNormalizedDB(list_of_time: list, column: str):
 
 
 
-def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
+def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: dict):
     """ A function that takes creates/update another table if values are in a list/array format """
     
     try:
@@ -306,7 +309,7 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
         for ii in range(len(values)):
 
             time = values[ii][1]
-
+            
             # Downgoing, Upgoing or Perpendicular 
             if time not in spectraDict: 
                 continue 
@@ -314,7 +317,7 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
             spectra = spectraDict[time]
             
             create_alt_table_query = f"""
-            CREATE TABLE IF NOT EXISTS {spectra}_{fieldName} (
+            CREATE TABLE IF NOT EXISTS {spectra} (
                 ID INT AUTO_INCREMENT PRIMARY KEY,
                 ORBIT INT, 
                 TIME DECIMAL(50,30) NULL, 
@@ -323,9 +326,9 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
             columnName = [] 
 
             # 47 elements in a row
-            for ii in range(1, 48):
-                create_alt_table_query += f"ele_{ii} DOUBLE NULL,"
-                columnName.append(f"ele_{ii}")
+            for jj in range(1, 48):
+                create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+                columnName.append(f"ele_{jj}")
             create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
 
             try: 
@@ -337,14 +340,14 @@ def CreateAltAndInsertTable(fieldName: str, values: list, spectraDict: dict):
             # Loop through each row 
             cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
             concatValues = ', '.join(map(str, cleaned_values))
-            query = f"INSERT INTO {spectra}_{fieldName} (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
+            query = f"INSERT INTO {spectra} (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
 
             try: 
                 cursor.execute(query)
                 conn.commit()
             except Exception as e:
                 isFaulty = True
-                print(f"{spectra}_{fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
+                print(f"{spectra} {fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
 
         if isFaulty == False:
             print(f"Successfully Inserted Values into Alternate Table for {fieldName}\n")
@@ -373,7 +376,7 @@ def CreateAltAndInsertPerpendicularTable(values):
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-        print(f"Creating Alternate Table for Perpendicular Values")
+        print(f"Creating Alternate Table for Perpendicular Values\n")
 
         create_alt_table_query = f"""
         CREATE TABLE IF NOT EXISTS PERPENDICULAR (
@@ -385,9 +388,9 @@ def CreateAltAndInsertPerpendicularTable(values):
         columnName = [] 
 
         # 47 elements in a row
-        for i in range(1, 48):
-            create_alt_table_query += f"ele_{i} DOUBLE NULL,"
-            columnName.append(f"ele_{i}")
+        for jj in range(1, 48):
+            create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+            columnName.append(f"ele_{jj}")
         create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
 
         try: 
@@ -415,6 +418,74 @@ def CreateAltAndInsertPerpendicularTable(values):
 
         if isFaulty == False:
             print(f"Successfully Inserted Values into Alternate Table for Perpendicular Values\n")
+
+        # Commit the changes and close the connection
+        cursor.close()
+        conn.close()
+    
+    except mysql.connector.Error as err:
+        print(f"Error pushing to database: {err}")
+
+    finally:
+        # Ensure the connection is closed in case of an exception
+        if 'conn' in locals():
+            conn.close()
+
+
+
+def CreateAltAndInsertTable(fieldName: str, values: list):
+    """ A function that takes creates/update another table if values are in a list/array format """
+    
+    try:
+        # Establish a connection to the MySQL database
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        if len(values) == 0:
+            return None
+        
+        print(f"Creating Alternate Table for {fieldName}")
+
+        isFaulty = False 
+        for ii in range(len(values)):
+            
+            create_alt_table_query = f"""
+            CREATE TABLE IF NOT EXISTS {fieldName} (
+                ID INT AUTO_INCREMENT PRIMARY KEY,
+                ORBIT INT, 
+                TIME DECIMAL(50,30) NULL, 
+            """
+
+            columnName = [] 
+
+            # 47 elements in a row
+            for jj in range(1, 48):
+                create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+                columnName.append(f"ele_{jj}")
+            create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
+
+            try: 
+                cursor.execute(create_alt_table_query)
+                conn.commit()  
+            except Exception as e:
+                print(f"Error creating alternate table for {fieldName}: {str(e)}")
+            
+            # Loop through each row 
+            cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
+            concatValues = ', '.join(map(str, cleaned_values))
+            query = f"INSERT INTO {fieldName} (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
+
+            try: 
+                cursor.execute(query)
+                conn.commit()
+            except Exception as e:
+                isFaulty = True
+                print(f"{fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
+
+        if isFaulty == False:
+            print(f"Successfully Inserted Values into Alternate Table for {fieldName}\n")
+        else:
+            print(f"Unsuccessfully Inserted Values into Alternate Table for {fieldName}\n")
 
         # Commit the changes and close the connection
         cursor.close()
