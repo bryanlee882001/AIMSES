@@ -1,13 +1,14 @@
+from typing import Any, Dict, List, Tuple
 import query_from_db
 import numpy as np
 import statistics
 
 
-def processQueryData(data, queried_list_of_dict):
+def processQueryData(data: Dict[str, Any], queried_list_of_dict: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, List[str]]]:
     """A function that processes Data based on queried results (which are stored in dictionary format)"""
 
     # Store the list of time to obtain spectra values
-    list_of_time = []
+    list_of_time: List[float] = []
 
     # Loop through array of dictionaries to get the TIME 
     for i in range(len(queried_list_of_dict)):
@@ -20,40 +21,40 @@ def processQueryData(data, queried_list_of_dict):
 
     # If No Time is Extracted
     if (len(list_of_time) == 0):
-        return 0
+        return [], {}
     
-    yAxisQuery = { "Downward" : [], "Upward" : [], "Mirroring" : []}
-    xAxisQuery = []
+    yAxisQuery: Dict[str, List[str]] = { "Downward" : [], "Upward" : [], "Mirroring" : []}
+    xAxisQuery: List[str] = []
     
     if "Spectra" in data: 
         if data["Spectra"][0]: 
-            spectra = data["Spectra"][0]
+            spectra: str = data["Spectra"][0]
 
         # Loop over each time in the list_of_time
         for time in list_of_time:
 
-            xAxisQuery.append(f"SELECT * FROM el_en WHERE TIME = {time}")
+            xAxisQuery.append("SELECT * FROM el_en WHERE TIME = %s")
 
             if spectra == "Downward":
                 # get el_0_lc and el_180_lc for upgoing 
-                yAxisQuery[spectra].append(f"SELECT * FROM DOWNGOING WHERE TIME = {time}")
+                yAxisQuery[spectra].append("SELECT * FROM DOWNGOING WHERE TIME = %s")
 
             elif spectra == "Upward":
                 # get el_0_lc and el_180_lc for downgoing
-                yAxisQuery[spectra].append(f"SELECT * FROM UPGOING WHERE TIME = {time}")
+                yAxisQuery[spectra].append("SELECT * FROM UPGOING WHERE TIME = %s")
 
             elif spectra == "Mirroring":
                 # get perpendicular (el_90_lcp12 + el_270_lcp12 / 2)
-                yAxisQuery[spectra].append(f"SELECT * FROM PERPENDICULAR WHERE TIME = {time}")
+                yAxisQuery[spectra].append("SELECT * FROM PERPENDICULAR WHERE TIME = %s")
 
         # Compute Query 
-        return xAxisQuery, yAxisQuery
+        return (xAxisQuery, yAxisQuery), list_of_time
 
-    return None
+    return ([], {}), []
+
    
 
-
-def getStatistics(data, spectral_data):
+def getStatistics(data: dict, spectral_data: Tuple):
     """ A function that computes the statistics of the data """
 
     xAxisData, yAxisData = spectral_data 
@@ -117,7 +118,7 @@ def getStatistics(data, spectral_data):
 
 
 
-def getSpectraTablesFromTime(list_of_time):
+def getSpectraTablesFromTime(list_of_time: list):
     """A function that searches a reference table and finds the spectra tables based on the given list of times """
 
     # Construct the SQL query with the IN clause
