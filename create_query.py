@@ -86,7 +86,7 @@ def getILATQuery(string_query, filterData):
         return string_query
 
     raise ValueError("Invalid or No Range Selected")
-    
+
 
 # A function that determines the range for ALT based on user input for querying
 def getALTQuery(string_query, filterData):
@@ -397,9 +397,6 @@ def createQuery(dataDict):
     # Remove the last 'AND' if it exists
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
-
-    # # Comment this. Only for Testing purposes: 
-    # string_query += " LIMIT 2"
 
     return string_query 
 

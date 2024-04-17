@@ -1,6 +1,30 @@
 // Global Variable for Final Results
 var resultData = {}
 
+// Global Variable for Selection Criterias
+var inputData = '';
+var inputDict = {};
+
+// xValues for Early Mission 
+var earlyMission_xValues = [5.88, 9.80, 13.72, 17.64, 21.56, 25.48, 29.4, 35.28, 43.12, 50.96,
+    58.8, 70.56, 86.24, 101.92, 117.6, 141.12, 172.48, 203.84, 235.2, 282.24, 
+    344.96, 407.68, 470.4, 564.48, 689.92, 815.36, 940.8, 1128.96, 1379.84, 1630.72, 
+    1881.6, 2257.92, 2759.68, 3261.44, 3763.2, 4515.84, 5519.36, 6522.88, 7526.4, 9031.68, 
+    11038.72, 13045.75, 15052.79, 18063.35, 22077.43, 26091.51, 30105.59];
+
+var lateMission_xValues = [3.92, 3.92, 7.84, 15.19, 19.6, 23.52, 27.44, 31.85, 39.2, 47.04, 
+    54.88, 63.7, 78.4, 94.08, 109.76, 127.4, 156.8, 188.16, 219.52, 254.8,
+    313.6, 376.32, 439.04, 509.6, 627.2, 752.64, 878.08, 1019.2, 1254.4, 1505.28,
+    1756.16, 2038.4, 2508.8, 3010.56, 3512.32, 4076.8, 5017.6, 6021.12, 7024.643,
+    8153.6, 10035.2, 12042.2, 14049.29, 16307.21, 20070.4, 24084.48, 28098.57];
+
+// TODO: Undecided 
+var bothMissions_xValues =  [5.88, 9.80, 13.72, 17.64, 21.56, 25.48, 29.4, 35.28, 43.12, 50.96,
+    58.8, 70.56, 86.24, 101.92, 117.6, 141.12, 172.48, 203.84, 235.2, 282.24, 
+    344.96, 407.68, 470.4, 564.48, 689.92, 815.36, 940.8, 1128.96, 1379.84, 1630.72, 
+    1881.6, 2257.92, 2759.68, 3261.44, 3763.2, 4515.84, 5519.36, 6522.88, 7526.4, 9031.68, 
+    11038.72, 13045.75, 15052.79, 18063.35, 22077.43, 26091.51, 30105.59];
+
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
    
@@ -13,17 +37,14 @@ function generateSpectra() {
     if (validateFilters()) {
         if (inputData.trim() !== ''){
             // Summary Statistics
-            // var modalContent = document.getElementById('modalContent');
-            // modalContent.innerHTML = createFilterSelectionSummary(inputDict);
+            var modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = createFilterSelectionSummary(inputDict);
             
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {    
                 
                 // Assign to global Variable
                 resultData = result;
-
-                // // Print Results for Debugging
-                // PrintResultData();
                 // console.log(resultData);
 
                 // Create Charts
@@ -108,7 +129,12 @@ function createFilterSelectionSummary(inputDict) {
             selectionAndFilterSummary += inputDict[selectionCriteria].join(', ');
         }
 
-        selectionAndFilterSummary += '<br>';
+        selectionAndFilterSummary += ', ';
+    }
+
+    // Remove the comma at the end
+    if (selectionAndFilterSummary.endsWith(',')) {
+        selectionAndFilterSummary = selectionAndFilterSummary.slice(0, -1);
     }
 
     return selectionAndFilterSummary
@@ -138,33 +164,28 @@ function generateMissionCount() {
               'Content-Type': 'application/json'
             }, 
             body: JSON.stringify({data: data}) 
-          }) 
-          .then(response => response.json()) 
-          .then(result => { 
-            
-            console.log(result);
+        }) 
+        .then(response => response.json()) 
+        .then(result => { 
 
-            earlyMissionData.innerHTML = result.result[0].toString() + " rows of Data";
-            lateMissionData.innerHTML = result.result[1].toString() + " rows of Data";
+            earlyMissionData.innerHTML = result.result[0].toString() + " row(s) of Data";
+            lateMissionData.innerHTML = result.result[1].toString() + " row(s) of Data";
 
             if (generateMissionButton.classList.contains('active')) {
                 // If the button already has 'active' class, remove it
                 generateMissionButton.classList.remove('active');
             }
 
-          }) 
-          .catch(error => { 
-            console.error('Error:', error); 
-          }); 
+        }) 
+        .catch(error => { 
+        console.error('Error:', error); 
+        }); 
     }
 }
 
 
 // Gets User input and stores them in both a dictionary and a text format
 function getUserInput() {
-       // Function to generate Spectra
-       var inputData = '';
-       var inputDict = {};
    
        // Gather data from visible text input fields
        var textInputs = document.querySelectorAll('input[type="text"]:not([style*="display:none"])');
@@ -264,3 +285,44 @@ function getUserInput() {
     return [inputDict, inputData]
 }
 
+
+function exportExcel() {
+    let data = [
+        [ 'Id', 'FirstName', 'LastName', 'Mobile', 'Address' ], // This is your header.
+        [ 1, 'Richard', 'Roe', '9874563210', 'Address' ],
+        [ 2, 'Joe', 'Doakes', '7896541230', 'Address' ],
+        [ 3, 'John', 'Smith', '8745632109', 'Address' ],
+        [ 4, 'Joe', 'Sixpack', '9875647890', 'Address' ],
+        [ 5, 'Richard', 'Thomson', '8632547890', 'Address' ]
+    ];
+
+    let excelData = '';
+
+    // Prepare data for excel.You can also use html tag for create table for excel.
+    data.forEach(( rowItem, rowIndex ) => {   
+        
+        if (0 === rowIndex) {
+            // This is for header.
+        rowItem.forEach((colItem, colIndex) => {
+            excelData += colItem + ',';
+        });
+        excelData += "\r\n";
+        } else {
+            // This is data.
+            rowItem.forEach((colItem, colIndex) => {
+        excelData += colItem + ',';   
+        })
+        excelData += "\r\n";       
+        }
+    });
+
+    // Create the blob url for the file. 
+    excelData = "data:text/xlsx," + encodeURI(excelData);
+
+    // Download the xlsx file.
+    let a = document.createElement("A");
+    a.setAttribute("href", excelData);
+    a.setAttribute("download", "filename.xlsx");
+    document.body.appendChild(a);
+    a.click();
+}

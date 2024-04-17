@@ -874,35 +874,55 @@
             <div class="spectraPanelContiner">
                 <span class="close" onclick="closeModal()">&times;</span>
                 <h2>Spectra</h2>
-                <!-- <div id="modalContent" class="modalContent"></div> -->
-                <!-- <canvas id="myChart" style="width:80%;max-width:600px; max-height:1000px;"></canvas>   -->
+                <div id="modalContent" class="modalContent"></div>
+                <br/>
                 <div id="chartsContainer">
-                    <canvas id="myChart" style="width:80%; height: 80%;"></canvas>  
+                    <canvas id="myChart" style="width:80%; height: 50%;"></canvas>  
                 </div>
+                <button id="exportExcel" class="exportExcelButton" onclick="exportExcel()">Export Datasets</button>
         </div>
-
 
         <script>
                             
             function createCharts() {
-
                 // Get the canvas element
                 var canvas = document.getElementById('myChart');
                 var ctx = canvas.getContext('2d');
 
+                // Check if there's an existing chart instance
+                let chartStatus = Chart.getChart("myChart");
+                if (chartStatus != undefined) {
+                    chartStatus.destroy();
+                }
+                
+                // Parse x and y data values 
                 var jsonData = JSON.parse(resultData);
+                // var xValues = jsonData.result.xAxis;
 
-                var xValues = jsonData.result.xAxis; 
+                // Early Mission
+                if (inputDict["Mission"][0] == "Early Mission"){
+                    var xValues = earlyMission_xValues
+                }
+                // Late Mission
+                else if (inputDict["Mission"][0] == "Late Mission") {
+                    var xValues = lateMission_xValues;
+                }
+                // What would be the value for Both Missions? 
+                else {
+                    var xValues = bothMissions_xValues;
+                }
+
                 var yValues = [];
+                var allYValues = []; 
 
                 // Define a lookup table for common properties
                 const propertiesLookup = {
-                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'Mean' },
-                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'Median' },
-                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: '+1 sigma' },
-                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: '+1 sigma' },
-                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: '25 percentile' },
-                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: '75 percentile' }
+                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
+                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
+                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: 'statistics' },
+                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
+                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
+                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: 'statistics' }
                 };
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
@@ -910,6 +930,9 @@
                     if (jsonData.result.yAxis.hasOwnProperty(statKey) && propertiesLookup.hasOwnProperty(statKey)) {
                         // Get the statistics object for the current key
                         var statData = jsonData.result.yAxis[statKey];
+
+                        // Concatenate all y-axis values
+                        allYValues = allYValues.concat(statData); 
 
                         // Create a dataset object using common properties
                         var dataset = { label: statKey, data: statData, ...propertiesLookup[statKey] };
@@ -921,83 +944,80 @@
 
                 console.log(yValues);
                 console.log(xValues);
+                console.log(allYValues);
 
-                // Define an array to keep track of displayed exponents
-                var displayedExponents = [];
+                // Determine the min and max values for both x and y axes 
+                var minY = Math.min(...allYValues);
+                console.log(minY);
+                console.log(maxY);
+                var maxY = Math.max(...allYValues);
 
-                // Create a dynamic scales object based on yAxisIDs present in yValues
-                var scales = {};
-                yValues.forEach(dataset => {
-                    scales[dataset.yAxisID] = {
-                        
+                // Create a dynamic scales object for both x and y axes
+                var scales = {
+                    statistics: {
+                        title: {
+                            display: true,
+                            fontSize: 15,
+                            text: 'dEFlux',
+                            color: 'white'
+                        },
+                        grid: {
+                            display: true,
+                            drawTicks: true,
+                            lineWidth: 0.5, 
+                            tickColor: 'rgb(255, 255, 255, 0.8)',
+                            color: 'rgb(255, 255, 255, 0.4)'
+                        }
+                    },
+                    x: {
                         type: 'logarithmic',
                         display: true,
-                        beginAtZero: false,
-                        position: 'left',
                         ticks: {
-                            min: Math.pow(10, Math.floor(Math.log10(Math.min(...yValues)))), 
-                            max: Math.pow(10, Math.ceil(Math.log10(Math.max(...yValues)))), 
-                            callback: (value, index, values) => {
-                                if (value === 0) return value; // Return 0 explicitly
-                                const exponent = Math.floor(Math.log10(value));
-                                if (!displayedExponents.includes(exponent)) { 
-                                    displayedExponents.push(exponent); 
-                                    return `10^${exponent}`; 
+                            maxTickLimit: 6,
+                            autoSkip: true, 
+                            min: Math.pow(10, Math.floor(Math.log10(Math.min(...xValues)))),
+                            max: Math.pow(10, Math.ceil(Math.log10(Math.max(...xValues)))),
+                            callback: function(value, index, values) {
+                                var labels = [0, 10, 100, 1000, 10000];
+                                var max = Math.max(...values);
+                                if (value === max) {
+                                    return ''; // Empty string for max value
                                 }
-                                return '';
-                            },
-                            autoSkip: false, 
-                            minor: {
-                                count: 9, 
-                                stepSize: 10 
-                            },
-                            maxTicksLimit: 6 
+                                var formattedValue = labels.find(label => value <= label);
+                                if (formattedValue !== undefined && value === formattedValue) {
+                                    return formattedValue;
+                                } else {
+                                    return ''; // Empty string for other values
+                                }
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Energy (eV)',
+                            fontSize: 20,
+                            fontColor: 'white',
                         },
                         title: {
                             display: true,
-                            text: 'dEFlux'
-                        }
-                    };
-                });
-                
-                console.log(xValues);
-
-                // Add x-axis scale at the end
-                scales['x'] = {
-                    type: 'logarithmic',
-                    display: true,
-                    ticks: {
-                        min: 10, // Set min value to 10
-                        max: Math.pow(10, Math.ceil(Math.log10(Math.max(...xValues)))), // Set max to the highest power of 10 in xValues
-                        callback: (value, index, values) => {
-                            if (value === 0) return value; // return 0 explicitly
-                            if (value === 1) return 10; // return 10 explicitly
-                            return value === Math.pow(10, Math.floor(Math.log10(value))) ? value : ''; // return the value only if it's a power of 10, otherwise return an empty string
+                            fontSize: 15,
+                            text: 'Energy (eV)',
+                            color: 'white'
                         },
-                        autoSkip: false, // Disable auto skipping
-                        stepSize: 'logarithmic', // Increment by 10
-                        minor: {
-                            count: 9, 
-                            stepSize: 10 
-                        },
-                        maxTicksLimit: 6 
-                    },
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Energy (eV)',
-                        color: 'white'
-                    },
-                    title: {
+                        grid: {
                             display: true,
-                            text: 'Energy (eV)'
+                            drawTicks: true,
+                            lineWidth: 0.5, 
+                            tickColor: 'rgb(255, 255, 255, 0.8)',
+                            color: 'rgb(255, 255, 255, 0.4)'
+                        }
                     }
                 };
-                
+
                 // Draw Border
                 const chartAreaBorder = {
                     id: 'chartAreaBorder',
                     beforeDraw(chart, args, options) {
-                        const {ctx, chartArea: {left, top, width, height}} = chart;
+                        const { ctx, chartArea: { left, top, width, height } } = chart;
                         ctx.save();
                         ctx.strokeStyle = options.borderColor;
                         ctx.lineWidth = options.borderWidth;
@@ -1011,18 +1031,14 @@
                 // Create a new chart instance
                 var myChart = new Chart(ctx, {
                     type: 'line',
-                    data: {labels: xValues, datasets: yValues, lineTension: 0.4}, 
+                    data: { labels: xValues, datasets: yValues },
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
-                        title: {
-                            display: true,
-                            text: 'Spectra Graph'
-                        },
                         plugins: {
                             chartAreaBorder: {
                                 borderColor: 'rgb(255,255,255,0.5)',
-                                borderWidth: 1
+                                borderWidth: 3
                             }
                         },
                         scales: scales
@@ -1030,10 +1046,7 @@
                     plugins: [chartAreaBorder]
                 });
             }
-
             window.onload = createChart; 
         </script>
-
-        <div class="background"></div>
     </body>
 </html>
