@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = "none";
         inputData = '';
         inputDict = {};
+
+        const container = document.getElementById("selectionCriteriaContainter");
+        if (container) {
+            container.innerHTML = '';
+        } else {
+            console.error('Container not found');
+        }
     }
 
     // When the user clicks anywhere outside of the modal, close it
@@ -18,6 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = "none";
             inputData = '';
             inputDict = {};
+
+            const container = document.getElementById("selectionCriteriaContainter");
+            if (container) {
+                container.innerHTML = '';
+            } else {
+                console.error('Container not found');
+            }
         }
     }
 });

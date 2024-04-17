@@ -873,13 +873,22 @@
         <div id="spectraPanel" class="modal">
             <div class="spectraPanelContiner">
                 <span class="close" onclick="closeModal()">&times;</span>
-                <h2>Spectra</h2>
-                <div id="modalContent" class="modalContent"></div>
-                <br/>
+                <h2>Statistical Electron Spectra Graph Generation</h2>
+
+                <!-- <div id="modalContent" class="modalContent"></div> -->
+
+                <!-- Selection Criteria Displayed here -->
+                <p style="font-weight: 900;">Selection Criteria</p>
+                <div id="selectionCriteriaContainter" class="selectionCriteriaContainter"></div><br/><br/>
+
+                <!-- Graph Generated here -->
+                <p style="font-weight: 900;">Spectra Analysis</p>
                 <div id="chartsContainer">
                     <canvas id="myChart" style="width:80%; height: 50%;"></canvas>  
-                </div>
-                <button id="exportExcel" class="exportExcelButton" onclick="exportExcel()">Export Datasets</button>
+                </div><br/>
+
+                <!-- Export to CSV Button -->
+                <button id="exportCSV" class="exportCSVButton" onclick="exportCSV()">Export Datasets</button>
         </div>
 
         <script>
@@ -1037,7 +1046,8 @@
                                 borderWidth: 3
                             }
                         },
-                        scales: scales
+                        scales: scales,
+                        maintainAspectRatio: false 
                     },
                     plugins: [chartAreaBorder]
                 });
