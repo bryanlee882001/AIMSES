@@ -852,7 +852,7 @@
                     <input type="radio" name="mission">
                     <span class="checkmark"></span>
                 </label>
-                <label class="spectraRequirementsContainer" style="margin-top:10px;">Both 
+                <label class="spectraRequirementsContainer" style="margin-top:10px;"  onchange="alert('Warning:')">Both 
                     <input type="radio" name="mission">
                     <span class="checkmark"></span>
                 </label>
@@ -883,17 +883,21 @@
 
                 <!-- Graph Generated here -->
                 <p style="font-weight: 900;">Spectra Analysis</p>
-                <div id="chartsContainer">
+                <div class="chartsContainer">
                     <canvas id="myChart" style="width:80%; height: 50%;"></canvas>  
                 </div><br/>
 
                 <!-- Export to CSV Button -->
-                <button id="exportCSV" class="exportCSVButton" onclick="exportCSV()">Export Datasets</button>
+                <div class="modalControlContainer"> 
+                    <button id="exportCSV" class="exportCSVButton" onclick="exportCSV()">Download Datasets</button>
+                    <button id="exportJPEG" class="exportJPEGButton" onclick="exportJPEG()">Download Graph</button>
+                </div>
         </div>
 
         <script>
             // Function to create chart when user clicks on generateSpectra button 
             function createCharts() {
+
                 // Get the canvas element
                 var canvas = document.getElementById('myChart');
                 var ctx = canvas.getContext('2d');
@@ -953,8 +957,6 @@
 
                 // Determine the min and max values for both x and y axes 
                 var minY = Math.min(...allYValues);
-                console.log(minY);
-                console.log(maxY);
                 var maxY = Math.max(...allYValues);
 
                 // Create a dynamic scales object for both x and y axes
@@ -962,7 +964,9 @@
                     statistics: {
                         title: {
                             display: true,
-                            fontSize: 15,
+                            font: {
+                                size: 16
+                            },
                             text: 'dEFlux',
                             color: 'white'
                         },
@@ -972,6 +976,12 @@
                             lineWidth: 0.5, 
                             tickColor: 'rgb(255, 255, 255, 0.8)',
                             color: 'rgb(255, 255, 255, 0.4)'
+                        },
+                        ticks: {
+                            color: "rgb(255,255,255,0.7)",
+                            font : {
+                                size: 13
+                            }
                         }
                     },
                     x: {
@@ -994,17 +1004,17 @@
                                 } else {
                                     return ''; 
                                 }
+                            },
+                            color: "rgb(255,255,255,0.7)",
+                            font : {
+                                size: 13
                             }
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Energy (eV)',
-                            fontSize: 20,
-                            fontColor: 'white',
                         },
                         title: {
                             display: true,
-                            fontSize: 15,
+                            font: {
+                                size: 16
+                            },
                             text: 'Energy (eV)',
                             color: 'white'
                         },
@@ -1012,7 +1022,7 @@
                             display: true,
                             drawTicks: true,
                             lineWidth: 0.5, 
-                            tickColor: 'rgb(255, 255, 255, 0.8)',
+                            tickColor: 'rgb(255, 255, 255, 1)',
                             color: 'rgb(255, 255, 255, 0.4)'
                         }
                     }
@@ -1042,12 +1052,20 @@
                         maintainAspectRatio: true,
                         plugins: {
                             chartAreaBorder: {
-                                borderColor: 'rgb(255,255,255,0.5)',
-                                borderWidth: 3
+                                borderColor: 'rgb(255,255,255,0.7)',
+                                borderWidth: 1
+                            },
+                            legend: {
+                                labels : {
+                                    color: 'rgb(255,255,255,1)',
+                                    font: {
+                                        size: 15 
+                                    }
+                                }
                             }
                         },
                         scales: scales,
-                        maintainAspectRatio: false 
+                        maintainAspectRatio: false,
                     },
                     plugins: [chartAreaBorder]
                 });

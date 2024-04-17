@@ -47,7 +47,6 @@ function generateSpectra() {
                 
                 // Assign to global Variable
                 resultData = result;
-                // console.log(resultData);
 
                 // Create Charts
                 createCharts();
@@ -110,8 +109,10 @@ function createSelectionCriteriaBoxes(text){
 // Generate Filter Selection Summary for users
 function createFilterSelectionSummary(inputDict) {
 
-    var selectionAndFilterSummary = ''; 
+    listOfSelections = []; 
+    
     for (let selectionCriteria in inputDict) {
+        var selectionAndFilterSummary = ''; 
 
         selectionAndFilterSummary += selectionCriteria + " : ";
         
@@ -153,7 +154,7 @@ function createFilterSelectionSummary(inputDict) {
             selectionAndFilterSummary += inputDict[selectionCriteria].join(', ');
         }
 
-        selectionAndFilterSummary += ', ';
+        listOfSelections.push(selectionAndFilterSummary);
     }
 
     // Remove the comma at the end
@@ -161,16 +162,12 @@ function createFilterSelectionSummary(inputDict) {
         selectionAndFilterSummary = selectionAndFilterSummary.slice(0, -1);
     }
 
-    // Split the summary into separate elements
-    const elements = selectionAndFilterSummary.split(', ');
-
-    elements.forEach(element => {
-        if (element.trim() !== '') {
-            createSelectionCriteriaBoxes(element.trim());
-        }
+    // Dynamically create selection criteria to display in modal 
+    listOfSelections.forEach(selection => {
+        createSelectionCriteriaBoxes(selection);
     });
 
-    return elements
+    return listOfSelections
 }
 
 
@@ -280,6 +277,7 @@ function getUserInput() {
                var filterTitleElement = spectraCategory.querySelector('.filterTitle');
                if (filterTitleElement) {
                    var filterTitle = filterTitleElement.textContent;
+
                    inputData += filterTitle + ' : ' + radio.parentNode.textContent.trim() + '<br>';
                    
                    if (filterTitle in inputDict) {
@@ -319,43 +317,161 @@ function getUserInput() {
 }
 
 
+// Exports DataSets as a CSV file format
 function exportCSV() {
-    let data = [
-        [ 'Id', 'FirstName', 'LastName', 'Mobile', 'Address' ], // This is your header.
-        [ 1, 'Richard', 'Roe', '9874563210', 'Address' ],
-        [ 2, 'Joe', 'Doakes', '7896541230', 'Address' ],
-        [ 3, 'John', 'Smith', '8745632109', 'Address' ],
-        [ 4, 'Joe', 'Sixpack', '9875647890', 'Address' ],
-        [ 5, 'Richard', 'Thomson', '8632547890', 'Address' ]
-    ];
 
-    let excelData = '';
+    if (Object.keys(resultData).length === 0) {
+        alert('Error Downloading CSV. Invalid Datasets');
+    }
 
-    // Prepare data for excel.You can also use html tag for create table for excel.
-    data.forEach(( rowItem, rowIndex ) => {   
-        
-        if (0 === rowIndex) {
-            // This is for header.
-        rowItem.forEach((colItem, colIndex) => {
-            excelData += colItem + ',';
-        });
-        excelData += "\r\n";
-        } else {
-            // This is data.
-            rowItem.forEach((colItem, colIndex) => {
-        excelData += colItem + ',';   
-        })
-        excelData += "\r\n";       
+    var jsonData = JSON.parse(resultData); 
+    yAxisValues = jsonData.result.yAxis;
+
+    // Prepare CSV content for x-values
+    let csvContent = 'X-Values: energy (eV)\n';
+    if (inputDict["Mission"][0] == "Early Mission"){
+        var xValues = earlyMission_xValues
+    }
+    // Late Mission
+    else if (inputDict["Mission"][0] == "Late Mission") {
+        var xValues = lateMission_xValues;
+    }
+    // What would be the value for Both Missions? 
+    else {
+        var xValues = bothMissions_xValues;
+    }
+    csvContent += xValues.join(',') + '\n\n';
+
+    // Add each y-values array to the CSV content
+    csvContent += `Y-Values: dEFlux\n`
+    for (const key in yAxisValues) {
+        if (yAxisValues.hasOwnProperty(key)) {
+
+            if (key == "+1σ") {
+                var updatedKey = "+1 sigma";
+            }
+            else if (key == "-1σ") {
+                var updatedKey = "-1 sigma";
+            }
+            else {
+                var updatedKey = key; 
+            }
+
+            csvContent += `${updatedKey}\n`;
+            csvContent += yAxisValues[key].join(',') + '\n\n';
         }
-    });
+    }
 
-    // Create the blob url for the file. 
-    excelData = "data:text/xlsx," + encodeURI(excelData);
+    // Add selection criteria to the CSV content
+    csvContent += 'Selection Criteria\n';
+    for (let selectionCriteria in inputDict) {
 
-    // Download the xlsx file.
-    let a = document.createElement("A");
-    a.setAttribute("href", excelData);
-    a.setAttribute("download", "filename.xlsx");
-    document.body.appendChild(a);
-    a.click();
+        csvContent += selectionCriteria + ",";
+        
+        var selection = inputDict[selectionCriteria];
+
+        // check if value is a dictionary
+        if (typeof selection === 'object') {
+            if (selection.hasOwnProperty('Hemisphere')) {
+                csvContent += selection["Hemisphere"] + ", ";
+            }
+    
+            if (selection.hasOwnProperty("Range")) {
+                if (selection["Range"] == "Between") {
+                    csvContent += " Between " + selection["minRange"] + " and " + selection["maxRange"];
+                }
+                else if (selection["Range"] == "Lesser Than") {
+                    csvContent += " Lesser Than " + selection["lesserThanValue"];
+                }
+                else if (selection["Range"] == "Greater Than") {
+                    csvContent += " Greater Than " + selection["greaterThanValue"];
+                }
+                else {
+                    csvContent += " Invalid Range";
+                }
+            }    
+
+            // If selection criteria is mechanism, it should only have one element since its a radio button
+            if (selectionCriteria == "MECHANISMS" && selection.length == 1) {
+                csvContent += selection[0];   
+            }
+        }
+
+        // if value is not a dictionary, it is an array 
+        if (selectionCriteria === "Statistics" ||
+            selectionCriteria === "Spectra" ||
+            selectionCriteria === "Normalization" ||
+            selectionCriteria === "Mission") {
+
+            // CSV cannot read sigma symbol 
+            var finalStatisticsArr = []
+            for (const ele of inputDict[selectionCriteria]){
+                if (ele == "+1σ") {
+                    finalStatisticsArr.push("+1 sigma");
+                }
+                else if (ele == "-1σ") {
+                    finalStatisticsArr.push("-1 sigma");
+                }
+                else {
+                    finalStatisticsArr.push(ele);
+                }
+            }
+
+            csvContent += finalStatisticsArr.join(', ');
+        }
+
+        csvContent += '\n';
+    }
+
+    // Create a Blob with the CSV content
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // Generate download link for the CSV file
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+
+        // Get current date and time
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); 
+        const day = String(currentDate.getDate()).padStart(2, '0'); 
+        const hours = String(currentDate.getHours()).padStart(2, '0'); 
+        const minutes = String(currentDate.getMinutes()).padStart(2, '0'); 
+        const dateString = `${year}${month}${day}_${hours}${minutes}`;
+        link.setAttribute('download', `datasets_${dateString}.csv`);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+
+// Exports graph as a JPEG format
+function exportJPEG() {
+    var canvas = document.getElementById('myChart');
+
+    // Convert the chart to a base64-encoded JPEG image
+    var imageData = canvas.toDataURL('image/jpeg');
+    var link = document.createElement('a');
+
+    // Set the href attribute to the base64-encoded image data
+    link.href = imageData;
+
+    // Get current date and time
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); 
+    const day = String(currentDate.getDate()).padStart(2, '0'); 
+    const hours = String(currentDate.getHours()).padStart(2, '0'); 
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0'); 
+    const dateString = `${year}${month}${day}_${hours}${minutes}`;
+
+    // Set the download attribute to specify the filename
+    link.download = `spectra_graph_${year}${month}${day}_${hours}${minutes}.jpg`;
+
+    // Programmatically trigger the download
+    link.click();
 }
