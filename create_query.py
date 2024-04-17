@@ -1,11 +1,13 @@
 import utility
+from typing import Tuple, List, Union
 
 
-# A function that determines the range for MLT based on user input for querying
-def getMLTQuery(string_query, filterData):
+def getMLTQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for MLT based on user input for querying"""
     if not filterData:
-        return string_query
+        return string_query, []
 
+    parameters = []
     # Check Range
     rangeType = filterData.get("Range")
     if rangeType == "Between":
@@ -14,31 +16,35 @@ def getMLTQuery(string_query, filterData):
 
         if minRange <= maxRange:
             # Everything between 2 and 22 
-            string_query += f"(MLT BETWEEN {minRange} AND {maxRange}) AND "
+            string_query += "(MLT BETWEEN %s AND %s) AND "
+            parameters.extend([minRange, maxRange])
         else: 
             # minRange > maxRange
-            string_query += f"(MLT BETWEEN {minRange} AND 24.0) OR (MLT BETWEEN 0.0 AND {maxRange}) AND"
+            string_query += "(MLT BETWEEN %s AND 24.0) OR (MLT BETWEEN 0.0 AND %s) AND"
+            parameters.extend([minRange, maxRange])
 
     elif rangeType == "Lesser Than":
         lesserThanValue = utility.convertMLT(filterData.get("lesserThanValue"))
-        string_query += f"(MLT <= {lesserThanValue}) AND "
+        string_query += "(MLT <= %s) AND "
+        parameters.append(lesserThanValue)
 
     elif rangeType == "Greater Than":
         greaterThanValue = utility.convertMLT(filterData.get("greaterThanValue"))
-        string_query += f"(MLT >= {greaterThanValue}) AND "
-    
+        string_query += "(MLT >= %s) AND "
+        parameters.append(greaterThanValue)
+
     else:
         raise ValueError("No range type specified")
 
-    return string_query
+    return string_query, parameters
 
 
-# A function that determines the range for ILAT based on user input for querying
-def getILATQuery(string_query, filterData):
-
+def getILATQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for ILAT based on user input for querying"""
     if not filterData:
-        return string_query
+        return string_query, []
 
+    parameters = []
     hemisphere = filterData.get("Hemisphere")
     if not hemisphere:
         raise ValueError("No hemisphere selected")
@@ -49,123 +55,123 @@ def getILATQuery(string_query, filterData):
         lesserThanValue = utility.checkNumInput(filterData.get("lesserThanValue"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= lesserThanValue <= 90:
-            string_query += f"(ILAT <= {lesserThanValue}) AND "
+            string_query += "(ILAT <= %s) AND "
+            parameters.append(lesserThanValue)
         elif hemisphere == "Southern Hemisphere" and -90 <= lesserThanValue <= 0:
-            string_query += f"(ILAT <= {lesserThanValue}) AND "
+            string_query += "(ILAT <= %s) AND "
+            parameters.append(lesserThanValue)
         elif hemisphere == "Either" and 0 <= abs(lesserThanValue) <= 90:
-            string_query += f"(ILAT <= {lesserThanValue}) AND "
+            string_query += "(ILAT <= %s) AND "
+            parameters.append(lesserThanValue)
         else:
             raise ValueError("Invalid range for 'Lesser Than' type")
-        return string_query
 
     if rangeType == "Greater Than":
         greaterThanValue = utility.checkNumInput(filterData.get("greaterThanValue"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= greaterThanValue <= 90:
-            string_query += f"(ILAT >= {greaterThanValue}) AND "
+            string_query += "(ILAT >= %s) AND "
+            parameters.append(greaterThanValue)
         elif hemisphere == "Southern Hemisphere" and -90 <= greaterThanValue <= 0:
-            string_query += f"(ILAT >= {greaterThanValue}) AND "
+            string_query += "(ILAT >= %s) AND "
+            parameters.append(greaterThanValue)
         elif hemisphere == "Either" and 0 <= abs(greaterThanValue) <= 90:
-            string_query += f"(ILAT >= {greaterThanValue}) AND "
+            string_query += "(ILAT >= %s) AND "
+            parameters.append(greaterThanValue)
         else:
             raise ValueError("Invalid range for 'Greater Than' type")
-        return string_query
 
     if rangeType == "Between":
         minRange = utility.checkNumInput(filterData.get("minRange"))
         maxRange = utility.checkNumInput(filterData.get("maxRange"))
 
         if hemisphere == "Northern Hemisphere" and 0 <= minRange < maxRange <= 90:
-            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
+            string_query += "(ILAT BETWEEN %s AND %s) AND "
+            parameters.extend([minRange, maxRange])
         elif hemisphere == "Southern Hemisphere" and -90 <= minRange < maxRange <= 0:
-            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
+            string_query += "(ILAT BETWEEN %s AND %s) AND "
+            parameters.extend([minRange, maxRange])
         elif hemisphere == "Either" and 0 <= abs(minRange) < abs(maxRange) <= 90:
-            string_query += f"(ILAT BETWEEN {minRange} AND {maxRange}) AND "
+            string_query += "(ILAT BETWEEN %s AND %s) AND "
+            parameters.extend([minRange, maxRange])
         else:
             raise ValueError("Invalid range for 'Between' type")
-        return string_query
 
-    raise ValueError("Invalid or No Range Selected")
+    return string_query, parameters
 
 
-# A function that determines the range for ALT based on user input for querying
-def getALTQuery(string_query, filterData):
+def getALTQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for ALT based on user input for querying"""
+    if not filterData:
+        return string_query, []
 
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "ALT", parameters)
+
+
+def getSZAQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for SZA based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "SZA", parameters)
+
+
+def getF107Query(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for F10.7 based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "F107", parameters)
+
+
+def getEFLUXQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for EFLUX based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "EFLUX", parameters)
+
+
+def getNFLUXQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for NFLUX based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "NFLUX", parameters)
+
+
+def getCONJUGATESZAQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for Conjugate SZA based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "CONJUGATE_SZA", parameters)
+
+
+def getKPQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for KP based on user input for querying"""
     if not filterData:
         # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "ALT")
+        return string_query, []
 
-
-# A function that determines the range for SZA based on user input for querying
-def getSZAQuery(string_query, filterData):
-
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "SZA")
-
-
-# A function that determines the range for F10.7 based on user input for querying
-def getF107Query(string_query, filterData):
-    
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "F107")
-
-
-# A function that determines the range for EFLUX based on user input for querying 
-def getEFLUXQuery(string_query, filterData):
-
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "EFLUX")
-
-
-# A function that determines the range for NFLUX based on user input for querying 
-def getNFLUXQuery(string_query, filterData):
-
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "NFLUX")
-
-
-# A function that determines the range for Conjugate SZA based on user input for querying 
-def getCONJUGATESZAQuery(string_query, filterData):
-
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "CONJUGATE_SZA")
-
-
-# A function that determines the range for KP based on user input for querying 
-def getKPQuery(string_query, filterData):
-
-    if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
+    parameters = []
     # Check Range
     rangeType = filterData.get("Range")
     if rangeType == "Lesser Than":
         maxRange = utility.checkNumInput(filterData.get("lesserThanValue"))
-        string_query += f"(KP < {maxRange}) AND "
-        return string_query 
+        string_query += "(KP < %s) AND "
+        parameters.append(maxRange)
 
     elif rangeType == "Greater Than":
         minRange = utility.checkNumInput(filterData.get("greaterThanValue"))
-        string_query += f"(KP >= {minRange}) AND "
-        return string_query
+        string_query += "(KP >= %s) AND "
+        parameters.append(minRange)
 
     elif rangeType == "Between":
         minRange = utility.checkNumInput(filterData.get("minRange"))
@@ -174,139 +180,120 @@ def getKPQuery(string_query, filterData):
         if minRange > maxRange:
             raise ValueError("Minimum Range cannot be more than Maximum Range")
 
-        string_query += f"(KP BETWEEN {minRange} AND {maxRange}) AND "
-        return string_query
+        string_query += "(KP BETWEEN %s AND %s) AND "
+        parameters.extend([minRange, maxRange])
 
     else:
         raise ValueError("Invalid or No Range Selected")
 
+    return string_query, parameters
 
-# A function that determines the range for AE based on user input for querying 
-def getAEQuery(string_query, filterData):
 
+def getAEQuery(string_query: str, filterData: dict) -> Tuple[str, List[float]]:
+    """A function that determines the range for AE based on user input for querying"""
     if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "AE")
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "AE", parameters)
 
 
-# A function that determines the range for DST based on user input for querying 
-def getDSTQuery(string_query, filterData):
-
+def getDSTQuery(string_query: str, filterData: dict) -> Tuple[str, List[float]]:
+    """A function that determines the range for DST based on user input for querying"""
     if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "DST")
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "DST", parameters)
 
 
-# A function that determines the range for Newell Flux based on user input for querying 
-def getNEWELLFLUXQuery(string_query, filterData):
-
+def getNEWELLFLUXQuery(string_query: str, filterData: dict) -> Tuple[str, List[float]]:
+    """A function that determines the range for Newell Flux based on user input for querying"""
     if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "NEWELL_FLUX")
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "NEWELL_FLUX", parameters)
 
 
-# A function that determines the range for LCA based on user input for querying 
-def getLCAQuery(string_query, filterData):
-
+def getLCAQuery(string_query: str, filterData: dict) -> Tuple[str, List[float]]:
+    """A function that determines the range for LCA based on user input for querying"""
     if not filterData:
-        # No filter data provided, return the unchanged query
-        return string_query
-    
-    return genericFilterQuery(string_query, filterData, "LCA")
+        return string_query, []
+
+    parameters = []
+    return genericFilterQuery(string_query, filterData, "LCA", parameters)
 
 
-# A function that determines the range for MECHS based on user input for querying 
-def getMECHSQuery(string_query, filterData):
+def getMECHSQuery(string_query: str, filterData: dict) -> Tuple[str, List[float]]:
+    """A function that determines the range for MECHS based on user input for querying"""
+    if len(filterData) != 1:
+        return string_query, []
 
-    if len(filterData) != 1: 
-        return string_query
-    
     checkedMECH = filterData[0]
-
+    parameters = []
     if checkedMECH == "QS Only":
         string_query += "(MECHS = -1) AND "
-
     elif checkedMECH == "QS Dominant":
         string_query += "(MECHS = -1 OR MECH = 1) AND "
-        
     elif checkedMECH == "Alf Only":
         string_query += "(MECHS = -2) AND "
-
     elif checkedMECH == "Alf Dominant":
         string_query += "(MECHS = -2 OR MECH = 2) AND "
-
     elif checkedMECH == "WS Only":
         string_query += "(MECHS = -4) AND "
-
     elif checkedMECH == "WS Dominant":
         string_query += "(MECHS = -4 OR MECH = 4) AND "
-
     elif checkedMECH == "QS + Alf":
         string_query += "(MECHS = 3) AND "
-
     elif checkedMECH == "QS + WS":
         string_query += "(MECHS = 5) AND "
-
     elif checkedMECH == "Alf + WS":
         string_query += "(MECHS = 6) AND "
-
     elif checkedMECH == "Alf + WS + QS":
         string_query += "(MECHS = 7) AND "
-
     elif checkedMECH == "Any QS":
         string_query += "(MECHS = -1 OR MECHS = 1 OR MECHS = 3 OR MECHS = 5 OR MECHS = 7) AND "
-
     elif checkedMECH == "Any Alf":
         string_query += "(MECHS = -2 OR MECHS = 2 OR MECHS = 3 OR MECHS = 6 OR MECHS = 7) AND "
-
     elif checkedMECH == "Any WS":
         string_query += "(MECHS = -4 OR MECHS = 4 OR MECHS = 5 OR MECHS = 6 OR MECHS = 7) AND "
-
     elif checkedMECH == "Weak":
         string_query += "(MECHS = 0) AND "
-
     elif checkedMECH == "Any Intense":
         string_query += "(NOT MECHS = 0) AND "
-    
     else:
-        return string_query
+        return string_query, []
 
-    return string_query
+    return string_query, parameters
 
 
-# A function that determines the range for Time based on Mission
-def getMissionTimeQuery(string_query, filterData): 
-    
-    # Check if its Early Mission, Late Mission or Both
+def getMissionTimeQuery(string_query: str, filterData: str) -> Tuple[str, List[float]]:
+    """A function that determines the range for Time based on Mission"""
+    parameters = []
     if filterData == "Early Mission":
-        string_query += "(TIME BETWEEN 843419539 AND 1023754226) AND "
+        string_query += "(TIME BETWEEN %s AND %s) AND "
+        parameters.extend([843419539, 1023754226])
     if filterData == "Late Mission":
-        string_query += "(TIME BETWEEN 1023759079 AND 1241086949) AND "
+        string_query += "(TIME BETWEEN %s AND %s) AND "
+        parameters.extend([1023759079, 1241086949])
 
-    # If its both, we don't have to filter by time
-    return string_query
+    return string_query, parameters
 
 
-# A helper function for selections that only have Range (Between, less than, greater than)
-def genericFilterQuery(string_query, filterData, column):
-    
+def genericFilterQuery(string_query: str, filterData: dict, column: str, parameters: List[float]) -> Tuple[str, List[float]]:
+    """A helper function for selections that only have Range (Between, less than, greater than)"""
     # Check Range
     rangeType = filterData.get("Range")
     if rangeType == "Lesser Than":
         maxRange = utility.checkNumInput(filterData.get("lesserThanValue"))
-        string_query += f"({column} <= {maxRange}) AND "
-        return string_query 
+        string_query += f"({column} <= %s) AND "
+        parameters.append(maxRange)
 
     elif rangeType == "Greater Than":
         minRange = utility.checkNumInput(filterData.get("greaterThanValue"))
-        string_query += f"({column} >= {minRange}) AND "
-        return string_query
+        string_query += f"({column} >= %s) AND "
+        parameters.append(minRange)
 
     elif rangeType == "Between":
         minRange = utility.checkNumInput(filterData.get("minRange"))
@@ -315,146 +302,85 @@ def genericFilterQuery(string_query, filterData, column):
         if minRange > maxRange:
             raise ValueError("Minimum Range cannot be more than Maximum Range")
 
-        string_query += f"({column} BETWEEN {minRange} AND {maxRange}) AND "
-        return string_query
+        string_query += f"({column} BETWEEN %s AND %s) AND "
+        parameters.extend([minRange, maxRange])
 
     else:
         raise ValueError("Invalid or No Range Selected")
+
+    return string_query, parameters
     
 
-# A function that creates a query based on user input
-def createQuery(dataDict):
-
-    if ("MLT" not in dataDict and
-       "ILAT" not in dataDict and 
-       "ALT" not in dataDict and
-       "SZA" not in dataDict and
-       "F10.7" not in dataDict and
-       "EFLUX" not in dataDict and
-       "NFLUX" not in dataDict and
-       "CONJUGATE SZA" not in dataDict and
-       "KP" not in dataDict and
-       "AE" not in dataDict and
-       "DST" not in dataDict and
-       "SOLAR WIND DRIVING" not in dataDict and 
-       "LCA" not in dataDict and 
-       "MECHANISMS" not in dataDict
-        ):
-        return "SELECT TIME FROM AIMSES_NORM"
+def createQuery(dataDict: dict) -> Tuple[str, List[float]]:
+    """A function that creates a query based on user input"""
+    filter_functions = {
+        "MLT": getMLTQuery,
+        "ILAT": getILATQuery,
+        "ALT": getALTQuery,
+        "SZA": getSZAQuery,
+        "F10.7": getF107Query,
+        "EFLUX": getEFLUXQuery,
+        "NFLUX": getNFLUXQuery,
+        "CONJUGATE SZA": getCONJUGATESZAQuery,
+        "KP": getKPQuery,
+        "AE": getAEQuery,
+        "DST": getDSTQuery,
+        "SOLAR WIND DRIVING": getNEWELLFLUXQuery,
+        "LCA": getLCAQuery,
+        "MECHANISMS": getMECHSQuery,
+        "Mission": getMissionTimeQuery
+    }
 
     string_query = 'SELECT TIME FROM AIMSES_NORM WHERE '
+    parameters = []
 
-    # Looping through all keys in the dictionary
-    for key in dataDict: 
+    for key, func in filter_functions.items():
+        if key in dataDict:
+            string_query, params = func(string_query, dataDict[key])
+            parameters.extend(params)
 
-        # 1. Check Filters
-        if key == "MLT":
-            string_query = getMLTQuery(string_query, dataDict[key])
-
-        elif key == "ILAT":
-            string_query = getILATQuery(string_query, dataDict[key])
-
-        elif key == "ALT":
-            string_query = getALTQuery(string_query, dataDict[key])
-
-        elif key == "SZA":
-            string_query = getSZAQuery(string_query, dataDict[key])
-
-        elif key == "F10.7":
-            string_query = getF107Query(string_query, dataDict[key])
-
-        elif key == "EFLUX":
-            string_query = getEFLUXQuery(string_query, dataDict[key])
-        
-        elif key == "NFLUX": 
-            string_query = getNFLUXQuery(string_query, dataDict[key])
-
-        elif key == "CONJUGATE SZA": 
-            string_query = getCONJUGATESZAQuery(string_query, dataDict[key])
-
-        elif key == "KP": 
-            string_query = getKPQuery(string_query, dataDict[key])
-
-        elif key == "AE": 
-            string_query = getAEQuery(string_query, dataDict[key])
-
-        elif key == "DST": 
-            string_query = getDSTQuery(string_query, dataDict[key])
-
-        elif key == "SOLAR WIND DRIVING": 
-            string_query = getNEWELLFLUXQuery(string_query, dataDict[key])
-
-        elif key == "LCA": 
-            string_query = getLCAQuery(string_query, dataDict[key])
-
-        elif key == "MECHANISMS": 
-            string_query = getMECHSQuery(string_query, dataDict[key])
-
-        elif key == "Mission":
-            string_query = getMissionTimeQuery(string_query, dataDict[key])
-
-
-    # Remove the last 'AND' if it exists
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
 
-    return string_query 
+    return string_query, parameters
 
 
-# A function that creates a query based on user input
-def createQueryForMission(dataDict):
+def createQueryForMission(dataDict: dict) -> Tuple[str, str, List[float], List[float]]:
+    """A function that creates queries based on user input for mission"""
+    filter_functions = {
+        "MLT": getMLTQuery,
+        "ILAT": getILATQuery,
+        "ALT": getALTQuery,
+        "SZA": getSZAQuery,
+        "F10.7": getF107Query,
+        "EFLUX": getEFLUXQuery,
+        "NFLUX": getNFLUXQuery,
+        "CONJUGATE SZA": getCONJUGATESZAQuery,
+        "KP": getKPQuery,
+        "AE": getAEQuery,
+        "DST": getDSTQuery,
+        "SOLAR WIND DRIVING": getNEWELLFLUXQuery,
+        "LCA": getLCAQuery,
+        "MECHANISMS": getMECHSQuery
+    }
 
     string_query = 'SELECT COUNT(TIME) FROM AIMSES_NORM WHERE '
+    parameters = []
 
-    # Looping through all keys in the dictionary
-    for key in dataDict: 
+    for key, func in filter_functions.items():
+        if key in dataDict:
+            string_query, params = func(string_query, dataDict[key])
+            parameters.extend(params)
 
-        # 1. Check Filters
-        if key == "MLT":
-            string_query = getMLTQuery(string_query, dataDict[key])
+    # Constructing queries with time constraints
+    early_mission_query = string_query + " (TIME BETWEEN %s AND %s)"
+    late_mission_query = string_query + " (TIME BETWEEN %s AND %s)"
 
-        elif key == "ILAT":
-            string_query = getILATQuery(string_query, dataDict[key])
+    # Predefined TIME intervals for early and late missions
+    early_time_interval = (843419539, 1023754226)
+    late_time_interval = (1023759079, 1241086949)
 
-        elif key == "ALT":
-            string_query = getALTQuery(string_query, dataDict[key])
+    parameters_early = parameters + list(early_time_interval)
+    parameters_late = parameters + list(late_time_interval)
 
-        elif key == "SZA":
-            string_query = getSZAQuery(string_query, dataDict[key])
-
-        elif key == "F10.7":
-            string_query = getF107Query(string_query, dataDict[key])
-
-        elif key == "EFLUX":
-            string_query = getEFLUXQuery(string_query, dataDict[key])
-        
-        elif key == "NFLUX": 
-            string_query = getNFLUXQuery(string_query, dataDict[key])
-
-        elif key == "CONJUGATE SZA": 
-            string_query = getCONJUGATESZAQuery(string_query, dataDict[key])
-
-        elif key == "KP": 
-            string_query = getKPQuery(string_query, dataDict[key])
-
-        elif key == "AE": 
-            string_query = getAEQuery(string_query, dataDict[key])
-
-        elif key == "DST": 
-            string_query = getDSTQuery(string_query, dataDict[key])
-
-        elif key == "SOLAR WIND DRIVING": 
-            string_query = getNEWELLFLUXQuery(string_query, dataDict[key])
-
-        elif key == "LCA": 
-            string_query = getLCAQuery(string_query, dataDict[key])
-
-        elif key == "MECHANISMS": 
-            string_query = getMECHSQuery(string_query, dataDict[key])
-
-    early_mission_query = string_query + " (TIME BETWEEN 843419539 AND 1023754226)"
-    late_mission_query = string_query + " (TIME BETWEEN 1023759079 AND 1241086949)"
-
-    return early_mission_query, late_mission_query 
-
-
+    return early_mission_query, late_mission_query, parameters_early, parameters_late
