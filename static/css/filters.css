@@ -173,29 +173,3 @@ option{
     color: white;
 }
 
-
-.exportExcelButton{
-    height: 50px;
-    width: 200px;
-    padding-left: 25px;
-    padding-right: 25px;
-    margin-bottom: 15px;
-    background-color: rgb(255,255,255,0.2);
-    color: white;
-    font-size: 15px;
-    border: 1px solid white;
-    border-radius: 10px;
-    margin-right: 30px;
-}
-
-
-.exportExcelButton:hover{
-    border: 2px solid white;
-}
-
-
-.exportExcelButton:focus{
-    border: 2px solid white;
-    outline: none;
-    background-color: rgb(255, 255, 255, 0.3);   
-}

@@ -189,3 +189,47 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+.selectionCriteriaContainter{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 9px; 
+}
+
+.selectionCriteriaBox{
+    height: 20px;
+    width: fit-content;
+    border: 2px solid grey;
+    color: white; 
+    font-size: 13px;
+    background-color: rgb(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 10px 15px; 
+    display: flex;
+    align-items: center;
+}
+
+.exportCSVButton{
+    height: 50px;
+    width: 200px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-bottom: 15px;
+    background-color: rgb(255,255,255,0.2);
+    color: white;
+    font-size: 15px;
+    border: 1px solid white;
+    border-radius: 10px;
+    margin-right: 30px;
+}
+
+.exportCSVButton:hover{
+    border: 2px solid white;
+}
+
+.exportCSVButton:focus{
+    border: 2px solid white;
+    outline: none;
+    background-color: rgb(255, 255, 255, 0.3);   
+}

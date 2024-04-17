@@ -18,12 +18,13 @@ var lateMission_xValues = [3.92, 3.92, 7.84, 15.19, 19.6, 23.52, 27.44, 31.85, 3
     1756.16, 2038.4, 2508.8, 3010.56, 3512.32, 4076.8, 5017.6, 6021.12, 7024.643,
     8153.6, 10035.2, 12042.2, 14049.29, 16307.21, 20070.4, 24084.48, 28098.57];
 
-// TODO: Undecided 
+// TODO: Undecided for both missions
 var bothMissions_xValues =  [5.88, 9.80, 13.72, 17.64, 21.56, 25.48, 29.4, 35.28, 43.12, 50.96,
     58.8, 70.56, 86.24, 101.92, 117.6, 141.12, 172.48, 203.84, 235.2, 282.24, 
     344.96, 407.68, 470.4, 564.48, 689.92, 815.36, 940.8, 1128.96, 1379.84, 1630.72, 
     1881.6, 2257.92, 2759.68, 3261.44, 3763.2, 4515.84, 5519.36, 6522.88, 7526.4, 9031.68, 
     11038.72, 13045.75, 15052.79, 18063.35, 22077.43, 26091.51, 30105.59];
+
 
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
@@ -36,9 +37,10 @@ function generateSpectra() {
     // Display data in the modal if there is any input or selection
     if (validateFilters()) {
         if (inputData.trim() !== ''){
-            // Summary Statistics
-            var modalContent = document.getElementById('modalContent');
-            modalContent.innerHTML = createFilterSelectionSummary(inputDict);
+            // Summary Statistics (Not in-use at the moment)
+            // var modalContent = document.getElementById('modalContent');
+            // modalContent.innerHTML = createFilterSelectionSummary(inputDict);
+            var inputData = createFilterSelectionSummary(inputDict);
             
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {    
@@ -80,6 +82,28 @@ function sendDataToBackend(data) {
         console.error('Error:', error); 
         throw error; // rethrow the error to be caught by the caller
       }); 
+}
+
+
+// Displays Selection Criteria in modal 
+function createSelectionCriteriaBoxes(text){
+    
+    // Select the container
+    const container = document.getElementById('selectionCriteriaContainter');
+
+    // Create a box container element
+    const box = document.createElement('div');
+    box.classList.add('selectionCriteriaBox'); 
+
+    // Create a paragraph element for the text
+    const textElement = document.createElement('p');
+    textElement.textContent = text;
+
+    // Append the text element to the box
+    box.appendChild(textElement);
+
+    // Append the box to the container
+    container.appendChild(box);
 }
 
 
@@ -137,7 +161,16 @@ function createFilterSelectionSummary(inputDict) {
         selectionAndFilterSummary = selectionAndFilterSummary.slice(0, -1);
     }
 
-    return selectionAndFilterSummary
+    // Split the summary into separate elements
+    const elements = selectionAndFilterSummary.split(', ');
+
+    elements.forEach(element => {
+        if (element.trim() !== '') {
+            createSelectionCriteriaBoxes(element.trim());
+        }
+    });
+
+    return elements
 }
 
 
@@ -286,7 +319,7 @@ function getUserInput() {
 }
 
 
-function exportExcel() {
+function exportCSV() {
     let data = [
         [ 'Id', 'FirstName', 'LastName', 'Mobile', 'Address' ], // This is your header.
         [ 1, 'Richard', 'Roe', '9874563210', 'Address' ],
