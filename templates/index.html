@@ -883,7 +883,7 @@
         </div>
 
         <script>
-                            
+            // Function to create chart when user clicks on generateSpectra button 
             function createCharts() {
                 // Get the canvas element
                 var canvas = document.getElementById('myChart');
@@ -897,8 +897,8 @@
                 
                 // Parse x and y data values 
                 var jsonData = JSON.parse(resultData);
-                // var xValues = jsonData.result.xAxis;
 
+                // var xValues = jsonData.result.xAxis;
                 // Early Mission
                 if (inputDict["Mission"][0] == "Early Mission"){
                     var xValues = earlyMission_xValues
@@ -942,10 +942,6 @@
                     }
                 }
 
-                console.log(yValues);
-                console.log(xValues);
-                console.log(allYValues);
-
                 // Determine the min and max values for both x and y axes 
                 var minY = Math.min(...allYValues);
                 console.log(minY);
@@ -981,13 +977,13 @@
                                 var labels = [0, 10, 100, 1000, 10000];
                                 var max = Math.max(...values);
                                 if (value === max) {
-                                    return ''; // Empty string for max value
+                                    return ''; 
                                 }
                                 var formattedValue = labels.find(label => value <= label);
                                 if (formattedValue !== undefined && value === formattedValue) {
                                     return formattedValue;
                                 } else {
-                                    return ''; // Empty string for other values
+                                    return ''; 
                                 }
                             }
                         },
@@ -1028,7 +1024,7 @@
                     }
                 };
 
-                // Create a new chart instance
+                // Create a new chart Instance
                 var myChart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: xValues, datasets: yValues },
