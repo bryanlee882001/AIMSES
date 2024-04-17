@@ -123,11 +123,19 @@ input[type=submit]:focus {
 }
 
 
-@keyframes zoom {
-    0%{
-        transform: scale(1);
-    }
-    100%{
-        transform: scale(1.5);
-    }
+*::-webkit-scrollbar {
+    width: 10px;             
 }
+  
+*::-webkit-scrollbar-track {
+    background: none;   
+}
+  
+*::-webkit-scrollbar-thumb {
+    background-color: rgb(255, 255, 255, 0.3);
+    border-radius: 5px;
+    border: none;  
+}
+
+
+

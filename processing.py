@@ -116,6 +116,7 @@ def getStatistics(data, spectral_data):
     return computed_data
 
 
+
 def getSpectraTablesFromTime(list_of_time):
     """A function that searches a reference table and finds the spectra tables based on the given list of times """
 
