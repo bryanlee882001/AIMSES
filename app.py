@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import create_query
 import processing
 import query_from_db
+import utility
 
 app = Flask(__name__)
 
@@ -9,6 +10,10 @@ app = Flask(__name__)
 @app.route('/process-data', methods=['POST']) 
 def processData(): 
     data = request.json['data'] 
+
+    # 0: Check if there's any user input (other than statistics, spectra, normalization, and mission)
+    if utility.hasFilters(data) == False:
+        return jsonify({'result': 0}) 
 
     # 1: Create String Query Based on Selection Criterias and Filters
     string_query, parameters = create_query.createQuery(data)

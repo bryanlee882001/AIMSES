@@ -50,7 +50,7 @@ def processQueryData(data: Dict[str, Any], queried_list_of_dict: List[Dict[str, 
         # Compute Query 
         return (xAxisQuery, yAxisQuery), list_of_time
 
-    return ([], {}), []
+    return 0
 
    
 

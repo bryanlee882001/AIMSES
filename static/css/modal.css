@@ -1,4 +1,4 @@
-/* The Modal (background) */
+
 .modal {
     display: none; 
     position: fixed; 
@@ -12,7 +12,6 @@
     background-color: rgba(0,0,0,0.80);
 }
     
-/* Modal Content */
 .spectraPanelContiner {
     background-color: black;
     margin: auto;
@@ -31,7 +30,6 @@
     max-height: calc(100% - 50px);
 }
 
-/* The Close Button */
 .close {
     color: #aaaaaa;
     float: right;
