@@ -1,5 +1,3 @@
-
-
 // Toggle Visibility of hidden filters
 function toggleVisibility(containerID) {
     
@@ -97,6 +95,7 @@ function ClearAllInputsInContainer(container) {
             radio.checked = false;
     });
 }
+
 
 // Function to clear all inputs in a container if display is set to none
 function ClearAllInputsInContainerBasedOnDisplay(container){

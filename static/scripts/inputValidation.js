@@ -56,6 +56,10 @@ function validateFilters() {
         }
     }   
 
+    if (results.length == 0) {
+        alert('No Filters Selected');
+        return false;
+    }
 
     // If all results are true, return true
     return true;

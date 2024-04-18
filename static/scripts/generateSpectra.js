@@ -29,37 +29,43 @@ var bothMissions_xValues =  [5.88, 9.80, 13.72, 17.64, 21.56, 25.48, 29.4, 35.28
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
    
-    // userInput = [inputDict, inputData]
-    var userInput = getUserInput();
-    var inputDict = userInput[0];
-    var inputData = userInput[1];
+    // Get User Input
+    var [inputDict, inputData] = getUserInput();
+
+    if (!inputDict || !inputData) {
+        alert('Error Processing User Inputs');
+    }
 
     // Display data in the modal if there is any input or selection
     if (validateFilters()) {
         if (inputData.trim() !== ''){
-            // Summary Statistics (Not in-use at the moment)
-            // var modalContent = document.getElementById('modalContent');
-            // modalContent.innerHTML = createFilterSelectionSummary(inputDict);
+            // Summary Statistics
             var inputData = createFilterSelectionSummary(inputDict);
             
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {    
                 
                 // Assign to global Variable
-                resultData = result;
+                resultData = JSON.parse(result);
+                
+                if (resultData.result == 0) {
+                    clearFilters();
+                    alert("No Datasets found for the criterias you've selected");
+                } else {
 
-                // Create Charts
-                createCharts();
+                    // Create Charts
+                    createCharts();
 
-                // Open the modal
-                openModal();
-
+                    // Open the modal
+                    openModal();
+                }
 
             }).catch(error => {
                 console.error('Error:', error);
             });
         }
         else {
+            clearFilters();
             alert("No Filters Selected");
         }
     }
@@ -79,7 +85,7 @@ function sendDataToBackend(data) {
       .then(response => response.text()) 
       .catch(error => { 
         console.error('Error:', error); 
-        throw error; // rethrow the error to be caught by the caller
+        throw error; 
       }); 
 }
 
@@ -474,4 +480,55 @@ function exportJPEG() {
 
     // Programmatically trigger the download
     link.click();
+}
+
+
+// Wait for the DOM content to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add this line to get the reference to the close button
+    var modal = document.getElementById('spectraPanel');
+    var span = document.querySelector('.close');
+
+    // When the user clicks on x, close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+        clearFilters();
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+            clearFilters();
+        }
+    }
+});
+
+
+// Function to open the modal
+function openModal() {
+    var modal = document.getElementById('spectraPanel');
+    modal.style.display = 'block';
+}
+
+
+// Function to close the modal
+function closeModal() {
+    var modal = document.getElementById('spectraPanel');
+    modal.style.display = 'none';
+}
+
+
+// Function to clear filters in modalContainer and global variabls inputData and inputDict
+function clearFilters() {
+
+    inputData = '';
+    inputDict = {};
+
+    const container = document.getElementById("selectionCriteriaContainter");
+    if (container) {
+        container.innerHTML = '';
+    } else {
+        console.error('Container not found');
+    }
 }

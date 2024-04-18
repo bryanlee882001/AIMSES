@@ -14,8 +14,7 @@
         <script src="//code.jquery.com/jquery.min.js"></script>        
         <script src="{{ url_for('static', filename='scripts/scripts.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/charts.js') }}"></script>
-        <script src="{{ url_for('static', filename='scripts/filters.js') }}"></script>
-        <script src="{{ url_for('static', filename='scripts/modal.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/filterSelection.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -908,22 +907,11 @@
                     chartStatus.destroy();
                 }
                 
-                // Parse x and y data values 
-                var jsonData = JSON.parse(resultData);
-
-                // var xValues = jsonData.result.xAxis;
                 // Early Mission
-                if (inputDict["Mission"][0] == "Early Mission"){
-                    var xValues = earlyMission_xValues
-                }
-                // Late Mission
-                else if (inputDict["Mission"][0] == "Late Mission") {
-                    var xValues = lateMission_xValues;
-                }
-                // What would be the value for Both Missions? 
-                else {
-                    var xValues = bothMissions_xValues;
-                }
+                var mission = inputDict["Mission"][0];
+                var xValues = (mission === "Early Mission") ? earlyMission_xValues :
+                              (mission === "Late Mission") ? lateMission_xValues :
+                              bothMissions_xValues;
 
                 var yValues = [];
                 var allYValues = []; 
@@ -939,10 +927,10 @@
                 };
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
-                for (var statKey in jsonData.result.yAxis) {
-                    if (jsonData.result.yAxis.hasOwnProperty(statKey) && propertiesLookup.hasOwnProperty(statKey)) {
+                for (var statKey in resultData.result.yAxis) {
+                    if (resultData.result.yAxis.hasOwnProperty(statKey) && propertiesLookup.hasOwnProperty(statKey)) {
                         // Get the statistics object for the current key
-                        var statData = jsonData.result.yAxis[statKey];
+                        var statData = resultData.result.yAxis[statKey];
 
                         // Concatenate all y-axis values
                         allYValues = allYValues.concat(statData); 
@@ -1070,7 +1058,6 @@
                     plugins: [chartAreaBorder]
                 });
             }
-            window.onload = createChart; 
         </script>
     </body>
 </html>
