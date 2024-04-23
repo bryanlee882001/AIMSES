@@ -54,7 +54,7 @@ def processQueryData(data: Dict[str, Any], queried_list_of_dict: List[Dict[str, 
 
    
 
-def getStatistics(data: dict, spectral_data: Tuple):
+def computeStatistics(data: dict, spectral_data: Tuple):
     """ A function that computes the statistics of the data """
 
     xAxisData, yAxisData = spectral_data 
