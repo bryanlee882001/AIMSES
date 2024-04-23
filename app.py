@@ -31,7 +31,7 @@ def processData():
     spectral_data = query_from_db.queryFromSpectraDict(process_query, time_values)
     
     # 5. Compute Statistics
-    result = processing.getStatistics(data, spectral_data) 
+    result = processing.computeStatistics(data, spectral_data) 
     
     # result = (final x values, final y values)
     return jsonify({'result': result}) 
