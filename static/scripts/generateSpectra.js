@@ -25,15 +25,26 @@ var bothMissions_xValues =  [4.9, 6.86, 10.78, 16.415, 20.58, 24.5, 28.42, 33.56
                              8592.64, 10586.96, 12543.975, 14550.04, 17185.28, 21073.915, 25153.495, 29152.08]
 
 
-
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
-   
+
+    console.log("Generating Spectra...");
+
     // Get User Input
     var [inputDict, inputData] = getUserInput();
-
+    
+    // Invalid User Input 
     if (!inputDict || !inputData) {
         alert('Error Processing User Inputs');
+        button.textContent = "Generate Spectra"; 
+        return; 
+    }
+
+    // Prompt Error if there's no spectral gneerational requirements in user input: 
+    if (!inputDict.hasOwnProperty("Statistics") || !inputDict.hasOwnProperty("Spectra") || 
+        !inputDict.hasOwnProperty("Normalization") || !inputDict.hasOwnProperty("Mission")) {
+            alert("Ensure that you've selected option(s) for Step 3: Statistics, Spectra, Normalization, and Mission");
+            return; 
     }
 
     // Measure the start time
@@ -49,11 +60,12 @@ function generateSpectra() {
             sendDataToBackend(inputDict).then(result => {    
                 
                 // Assign to global Variable
-                resultData = JSON.parse(result);
+                resultData = JSON.parse(result);                
                 
                 if (resultData.result == 0) {
                     clearFilters();
                     alert("No Datasets found for the criterias you've selected");
+                    return
                 } else {
 
                     // Create Charts
@@ -74,12 +86,14 @@ function generateSpectra() {
                 console.log("Total Time taken to generate Spectra: " + totalSeconds + " seconds");
 
             }).catch(error => {
+                clearFilters();
                 console.error('Error:', error);
+                return
             });
         }
         else {
             clearFilters();
-            alert("No Filters Selected");
+            alert("Ensure that selection ranges are correct in Step 2");
         }
     }
 }
@@ -193,6 +207,7 @@ function createFilterSelectionSummary(inputDict) {
 // Gets Early and Late Mission Data
 function generateMissionCount() {
 
+
     // Measure the start time
     var startTime = performance.now(); 
 
@@ -213,6 +228,9 @@ function generateMissionCount() {
     }
 
     var data = userInput[0];
+
+    earlyMissionData.innerHTML = "loading...";
+    lateMissionData.innerHTML = "loading...";
 
     if (validateFilters()) {
         fetch('/mission-data', { 
@@ -244,11 +262,14 @@ function generateMissionCount() {
             console.log("Total Time taken to calculate mission count: " + totalSeconds + " seconds");
 
             // Clear global variables to avoid duplication
-            inputData = '';
-            inputDict = {};
+            clearFilters();
         }) 
         .catch(error => { 
-        console.error('Error:', error); 
+            clearFilters();
+            console.error('Error:', error); 
+
+            earlyMissionData.innerHTML = "--";
+            lateMissionData.innerHTML = "--";
         }); 
     }
 }
@@ -368,34 +389,35 @@ function exportCSV() {
 
     // Prepare CSV content for x-values
     let csvContent = 'X-Values: energy (eV)\n';
+    csvContent += `number: ${inputDict["Mission"].length}\n`;
     var mission = inputDict["Mission"][0];
     var xValues = (mission === "Early Mission") ? earlyMission_xValues :
                     (mission === "Late Mission") ? lateMission_xValues :
                     bothMissions_xValues;
-    csvContent += xValues.join(',') + '\n\n';
+    csvContent += 'energy, ' + xValues.join(',') + '\n\n';
 
     // Add each y-values array to the CSV content
     csvContent += `Y-Values: dEFlux\n`
+    csvContent += `number: ${Object.getOwnPropertyNames(yAxisValues).length}\n`;
     for (const key in yAxisValues) {
         if (yAxisValues.hasOwnProperty(key)) {
 
+            // Update key for sigma symbols if needed
+            var updatedKey = key;
             if (key == "+1σ") {
-                var updatedKey = "+1 sigma";
-            }
-            else if (key == "-1σ") {
-                var updatedKey = "-1 sigma";
-            }
-            else {
-                var updatedKey = key; 
+                updatedKey = "+1 sigma";
+            } else if (key == "-1σ") {
+                updatedKey = "-1 sigma";
             }
 
-            csvContent += `${updatedKey}\n`;
-            csvContent += yAxisValues[key].join(',') + '\n\n';
+            csvContent += `${updatedKey}, ` + yAxisValues[key].join(',') + '\n';
         }
     }
+    csvContent += '\n';
 
     // Add selection criteria to the CSV content
     csvContent += 'Selection Criteria\n';
+    csvContent += `number: ${Object.getOwnPropertyNames(inputDict).length}\n`;
     for (let selectionCriteria in inputDict) {
 
         csvContent += selectionCriteria + ",";
@@ -410,13 +432,13 @@ function exportCSV() {
     
             if (selection.hasOwnProperty("Range")) {
                 if (selection["Range"] == "Between") {
-                    csvContent += " Between " + selection["minRange"] + " and " + selection["maxRange"];
+                    csvContent += " Between, " + selection["minRange"] + " , " + selection["maxRange"];
                 }
                 else if (selection["Range"] == "Lesser Than") {
-                    csvContent += " Lesser Than " + selection["lesserThanValue"];
+                    csvContent += " Lesser Than, " + selection["lesserThanValue"];
                 }
                 else if (selection["Range"] == "Greater Than") {
-                    csvContent += " Greater Than " + selection["greaterThanValue"];
+                    csvContent += " Greater Than, " + selection["greaterThanValue"];
                 }
                 else {
                     csvContent += " Invalid Range";
@@ -451,7 +473,6 @@ function exportCSV() {
 
             csvContent += finalStatisticsArr.join(', ');
         }
-
         csvContent += '\n';
     }
 
