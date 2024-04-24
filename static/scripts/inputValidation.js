@@ -1,5 +1,4 @@
 
-
 // A function that calls all validating functions 
 function validateFilters() {    
     
