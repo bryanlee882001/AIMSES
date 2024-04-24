@@ -243,8 +243,11 @@ function generateMissionCount() {
         .then(response => response.json()) 
         .then(result => { 
 
-            earlyMissionData.innerHTML = result.result[0].toString() + " row(s) of Data";
-            lateMissionData.innerHTML = result.result[1].toString() + " row(s) of Data";
+            var earlyMissionCount = result.result[0].toString();
+            var lateMissionCount = result.result[1].toString();
+
+            earlyMissionData.innerHTML = earlyMissionCount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " row(s) of Data";
+            lateMissionData.innerHTML =  lateMissionCount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " row(s) of Data";
 
             if (generateMissionButton.classList.contains('active')) {
                 // If the button already has 'active' class, remove it
@@ -271,6 +274,10 @@ function generateMissionCount() {
             earlyMissionData.innerHTML = "--";
             lateMissionData.innerHTML = "--";
         }); 
+    }
+    else {
+        earlyMissionData.innerHTML = "--";
+        lateMissionData.innerHTML = "--";
     }
 }
 
@@ -579,3 +586,5 @@ function clearFilters() {
         console.error('Container not found');
     }
 }
+
+
