@@ -16,25 +16,23 @@ def processData():
         return jsonify({'result': 0}) 
 
     # 1: Create String Query Based on Selection Criterias and Filters
-    string_query, parameters = create_query.createQuery(data)
+    string_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
 
-    # 2: Get Information 
-    queried_results = query_from_db.queryDataDict(string_query, parameters)
+    # 2: Query from MySQL database
+    queried_results = query_from_db.queryDataDict(string_query, parameters, spectral_table_name)
 
-    # 3. Process Data and Query from CDF_DATA / UPGOING / DOWNGOING / PERPENDICULAR 
-    process_query, time_values = processing.processQueryData(data, queried_results)
+    if queried_results == 0:
+        return jsonify({'result': 0})   
     
-    if process_query is None: 
-        return jsonify({'result': 0})     
+    # 3. Compute Statistics
+    result = processing.computeStatistics(data, queried_results) 
 
-    # 4. Query data and return values in the form of a dictionary 
-    spectral_data = query_from_db.queryFromSpectraDict(process_query, time_values)
-    
-    # 5. Compute Statistics
-    result = processing.computeStatistics(data, spectral_data) 
+    if result == 0: 
+        return jsonify({'result': 0})    
     
     # result = (final x values, final y values)
     return jsonify({'result': result}) 
+
 
 
 @app.route('/mission-data', methods=['POST']) 
