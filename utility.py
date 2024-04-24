@@ -1,63 +1,73 @@
 import numpy as np
+import mysql.connector
 import statistics
 from datetime import datetime
+from typing import Any, Dict, List, Tuple
+from data_extracting_scripts import db_info
+
+# Database credentials
+db_config = db_info.db_configuration
 
 
-def convertMLT(time_str : str):
-    """A function that converts HH:MM:SS Format to Fractional Hours (MLT)"""
-
+def queryDataDict(string_query : str, parameters: list, spectra: str):
+    """A function that executes the query to extract data in the form of a dictionary format from MySQL Database"""
     try:
-        # If input is 24:00:00, we assume that its 00:00:00 in the database
-        if (time_str == '24:00:00'): 
-            return 0.0
 
-        # Parse the time string to a datetime object
-        time_obj = datetime.strptime(time_str, '%H:%M:%S')
+        yAxisData = {}
 
-        # Calculate the total seconds since midnight
-        total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
+        # Connect to MySQL
+        connection = mysql.connector.connect(**db_config)
 
-        # Convert total seconds to fractional hours (MLT)
-        mlt = total_seconds / 3600
+        # Create cursor
+        cursor = connection.cursor()
 
-        return mlt
-    except ValueError as e:
-        # Handle the ValueError (invalid time string format)
-        raise ValueError("Invalid time format. Please provide time in HH:MM:SS format.") from e
+        # Execute SQL query with parameters
+        cursor.execute(string_query, parameters)
 
+        # Fetch data
+        result = cursor.fetchall()
 
-def checkNumInput(input_str : str):
-    """A function that checks Input to see if its an int/float or it has any notations"""
+        if not result:
+            return 0 
 
-    try:
-        # Attempt to convert input to a float
-        num = float(input_str)
-        return num
-    except ValueError:
-        # If ValueError occurs, attempt to handle scientific notation
-        if 'e' in input_str.lower():
-            try:
-                # Split input based on 'e' and convert coefficient and exponent to float
-                coefficient, exponent = map(float, input_str.lower().split("e"))
-                # Calculate the result using scientific notation
-                result = coefficient * pow(10, exponent)
-                return result
-            except ValueError:
-                # Invalid scientific notation format
-                raise ValueError("Invalid scientific notation format")
-        else:
-            # Invalid input
-            raise ValueError("Invalid input")
+        # Append to yAxis data 
+        yAxisData[spectra] = result
 
+        return yAxisData
 
-def hasFilters(inputDict : dict):
-    """ A function that checks if there is any user input"""
-
-    # Set of allowed keys
-    allowed_keys = {'Statistics', 'Spectra', 'Normalization', 'Mission'}
+    except mysql.connector.Error as error:
+        print("Error fetching data from MySQL:", error)
+        return None
     
-    # Check if there are any keys in the dictionary that are not in the allowed keys
-    return any(key not in allowed_keys for key in inputDict.keys())
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def queryMissionCount(string_query: str, parameters: List[float]) -> Tuple[int, int]:
+    """A function that executes the query to extract mission count data from MySQL Database """
+    try:
+        # Connect to MySQL
+        connection = mysql.connector.connect(**db_config)
+
+        # Create cursor 
+        cursor = connection.cursor()
+
+        # Execute the early mission query
+        cursor.execute(string_query, parameters)
+        earlyMissionCount, lateMissionCount = cursor.fetchone()
+        
+        return earlyMissionCount, lateMissionCount 
+    
+    except mysql.connector.Error as e:
+        print(f"Error: {e}")
+        return 0,0 
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 
 def computeStatistics(input_data: dict, yAxisData: dict):
@@ -156,6 +166,63 @@ def computeStatistics(input_data: dict, yAxisData: dict):
     # Not sure if xAxis is computed like this: (there might be multiple sets of values for x-axis)
     return computed_data
 
-        
+
+def convertMLT(time_str : str):
+    """A function that converts HH:MM:SS Format to Fractional Hours (MLT)"""
+
+    try:
+        # If input is 24:00:00, we assume that its 00:00:00 in the database
+        if (time_str == '24:00:00'): 
+            return 0.0
+
+        # Parse the time string to a datetime object
+        time_obj = datetime.strptime(time_str, '%H:%M:%S')
+
+        # Calculate the total seconds since midnight
+        total_seconds = time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second
+
+        # Convert total seconds to fractional hours (MLT)
+        mlt = total_seconds / 3600
+
+        return mlt
+    except ValueError as e:
+        # Handle the ValueError (invalid time string format)
+        raise ValueError("Invalid time format. Please provide time in HH:MM:SS format.") from e
+
+
+def checkNumInput(input_str : str):
+    """A function that checks Input to see if its an int/float or it has any notations"""
+
+    try:
+        # Attempt to convert input to a float
+        num = float(input_str)
+        return num
+    except ValueError:
+        # If ValueError occurs, attempt to handle scientific notation
+        if 'e' in input_str.lower():
+            try:
+                # Split input based on 'e' and convert coefficient and exponent to float
+                coefficient, exponent = map(float, input_str.lower().split("e"))
+                # Calculate the result using scientific notation
+                result = coefficient * pow(10, exponent)
+                return result
+            except ValueError:
+                # Invalid scientific notation format
+                raise ValueError("Invalid scientific notation format")
+        else:
+            # Invalid input
+            raise ValueError("Invalid input")
+
+
+def hasFilters(inputDict : dict):
+    """ A function that checks if there is any user input"""
+
+    # Set of allowed keys
+    allowed_keys = {'Statistics', 'Spectra', 'Normalization', 'Mission'}
+    
+    # Check if there are any keys in the dictionary that are not in the allowed keys
+    return any(key not in allowed_keys for key in inputDict.keys())
+
+
 
 

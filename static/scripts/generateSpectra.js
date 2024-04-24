@@ -28,8 +28,6 @@ var bothMissions_xValues =  [4.9, 6.86, 10.78, 16.415, 20.58, 24.5, 28.42, 33.56
 // Function that extracts user input and performs validation before sending to backend
 function generateSpectra() {
 
-    console.log("Generating Spectra...");
-
     // Get User Input
     var [inputDict, inputData] = getUserInput();
     
@@ -53,12 +51,13 @@ function generateSpectra() {
     // Display data in the modal if there is any input or selection
     if (validateFilters()) {
         if (inputData.trim() !== ''){
+
             // Summary Statistics
             var inputData = createFilterSelectionSummary(inputDict);
             
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {    
-                
+        
                 // Assign to global Variable
                 resultData = JSON.parse(result);                
                 

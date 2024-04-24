@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 import create_query
-import query_from_db
 import utility
 
 app = Flask(__name__)
@@ -18,7 +17,7 @@ def processData():
     string_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
 
     # 2: Query from MySQL database
-    queried_results = query_from_db.queryDataDict(string_query, parameters, spectral_table_name)
+    queried_results = utility.queryDataDict(string_query, parameters, spectral_table_name)
 
     if queried_results == 0:
         return jsonify({'result': 0})   
@@ -41,7 +40,7 @@ def missionData():
     string_query, parameters = create_query.createQueryForMission(data)
 
     # Get earlyMission count and lateMission count
-    earlyMissionCount, lateMissionCount = query_from_db.queryMissionCount(string_query, parameters)
+    earlyMissionCount, lateMissionCount = utility.queryMissionCount(string_query, parameters)
 
     return jsonify({'result': (earlyMissionCount, lateMissionCount)}) 
 
