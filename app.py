@@ -13,10 +13,10 @@ def processData():
     if utility.hasFilters(data) == False:
         return jsonify({'result': 0}) 
 
-    # 1: Create String Query Based on Selection Criterias and Filters
+    # 1: Create Join Query Based on Selection Criterias and Filters
     string_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
 
-    # 2: Query from MySQL database
+    # 2: Query from database
     queried_results = utility.queryDataDict(string_query, parameters, spectral_table_name)
 
     if queried_results == 0:
@@ -24,9 +24,6 @@ def processData():
     
     # 3. Compute Statistics
     result = utility.computeStatistics(data, queried_results) 
-
-    if result == 0: 
-        return jsonify({'result': 0})    
     
     # 4. Returns final Y values after computing statistics 
     return jsonify({'result': result}) 

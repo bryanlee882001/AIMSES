@@ -752,6 +752,7 @@
             </div>
         </div>
 
+
         <!-- Early Mission/ Late Mission -->
         <p style="margin-left: -540px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 3: Check for Early Mission / Late Mission</p>
         <div class="missionFrame">
@@ -773,6 +774,7 @@
             </div>
         </div>
 
+        
         <!-- Spectra Generation Requirements -->
         <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 4: Spectra Generation Requirements</p>
         <div class ="spectraGenerationRequirementContainer">
@@ -916,14 +918,50 @@
                 var yValues = [];
                 var allYValues = []; 
 
+                // Gradient Colors
+                var meanGradient = ctx.createLinearGradient(0, 0, 0, 300);
+                meanGradient.addColorStop(0, 'rgba(250, 121, 112, 0.6)');
+                meanGradient.addColorStop(1, 'rgba(0, 0, 0,0.1)');
+
+                var medianGradient = ctx.createLinearGradient(0, 0, 0, 300);
+                medianGradient.addColorStop(0, 'rgba(250, 163, 86, 0.6)');
+                medianGradient.addColorStop(1, 'rgba(0, 0, 0,0.2)');
+
+                var plusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 300);
+                plusSigmaGradient.addColorStop(0, 'rgba(124,227,139, 0.6)');
+                plusSigmaGradient.addColorStop(1, 'rgba(0, 0, 0,0.1)');
+
+                var minusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 300);
+                minusSigmaGradient.addColorStop(0, 'rgba(3, 218, 198, 0.6)');
+                minusSigmaGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+
+                var percentile25Gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                percentile25Gradient.addColorStop(0, 'rgba(119,189,251, 0.6)');
+                percentile25Gradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+
+                var percentile75Gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                percentile75Gradient.addColorStop(0, 'rgba(206,165,251,  0.6)');
+                percentile75Gradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+
+
+                // Define a lookup table for common properties
+                // const propertiesLookup = {
+                //     "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
+                //     "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
+                //     "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: 'statistics' },
+                //     "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
+                //     "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
+                //     "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: 'statistics' }
+                // };
+
                 // Define a lookup table for common properties
                 const propertiesLookup = {
-                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
-                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
-                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: 'statistics' },
-                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
-                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
-                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: 'statistics' }
+                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: meanGradient, borderDash: [0,0], yAxisID: 'statistics' },
+                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: medianGradient, borderDash: [10,10], yAxisID: 'statistics' },
+                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: plusSigmaGradient, borderDash: [2,2], yAxisID: 'statistics' },
+                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: minusSigmaGradient, borderDash: [0,0], yAxisID: 'statistics' },
+                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: percentile25Gradient, borderDash: [10,10], yAxisID: 'statistics' },
+                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: percentile75Gradient, borderDash: [2,2], yAxisID: 'statistics' }
                 };
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
@@ -936,7 +974,8 @@
                         allYValues = allYValues.concat(statData); 
 
                         // Create a dataset object using common properties
-                        var dataset = { label: statKey, data: statData, ...propertiesLookup[statKey] };
+                        var dataset = { label: statKey, data: statData, ...propertiesLookup[statKey],
+                                        fill: true};
 
                         // Push the dataset object into the datasets array
                         yValues.push(dataset);
