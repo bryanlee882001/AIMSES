@@ -1,7 +1,7 @@
 """
 Title: CDF Converter v1.2 
 Author: Bryan Yen Sheng Lee
-Description: This script extracts data from .cdf files, processes it, and inserts it into a MySQL database.
+Description: An automation program that extracts energy data from .cdf files, processes it, and inserts it into a MySQL database.
 """
 
 import cdflib
@@ -16,9 +16,11 @@ import decimal
 import math
 import db_info
 
-
 # Database credentials
 db_config = db_info.db_configuration
+
+# Global var to store column names for CDF_DATA Table
+cdf_data_columns = [] 
 
 
 def GetZVariables(path: str):
@@ -76,25 +78,16 @@ def PushToDataBase(varDict: dict, fileName: str):
 
         start_time = time.time()
 
-        # Calls CreateTableQuery() to generate table query 
-        create_table_query, mainTableColumnsList = CreateTableQuery(varDict,fileName)
-
-        try: 
-            cursor.execute(create_table_query)
-            conn.commit()  
-        except Exception as e:
-            print(f"Error creating table: {str(e)}")
-
-        # Call CompileDataIntoQueryFormat() function and insert them into the database row-by-row
-        data_lists_of_lists = CompileDataIntoQueryFormat(varDict, fileName)
+        # Call Compile_CDF_DATA() function and insert them into the database row-by-row
+        data_lists_of_lists = CompileCdfData(varDict, fileName)
         
-        columns = ', '.join(mainTableColumnsList)
+        columns = ', '.join(cdf_data_columns)
 
         for i in range(len(data_lists_of_lists)):
 
             values = ', '.join(map(str, data_lists_of_lists[i]))
 
-            query = f"INSERT INTO CDF_DATA (ORBIT, {columns}) VALUES ({values});"
+            query = f"INSERT INTO CDF_DATA (TIME_ID, ORBIT, {columns}) VALUES ({values});"
 
             try: 
                 cursor.execute(query)
@@ -120,116 +113,114 @@ def PushToDataBase(varDict: dict, fileName: str):
 
 
 
-def CompileDataIntoQueryFormat(varDict: dict, fileName: str):
-    """ A function that compiles all data from dictionary into a list of list """
+def CompileCdfData(varDict: dict, fileName: str):
+    """
+    A function that compiles all data from a .cdf dictionary into a list.
+
+    Parameters:
+        var_dict (dict): Dictionary containing data from .cdf file.
+        file_name (str): Name of the .cdf file.
+
+    Returns:
+        list: A list containing compiled data.
+    """
         
-    # create empty tables 
+    # Create Empty Arrays to store values 
     dataArr = [[] for _ in range(len(varDict["TIME"]))]
 
     list_of_time = []
     
+    # Dictionary to store perpendicular values
     perpendicularTables = {
         "el_90_lcp12" : [],
         "el_270_lcp12" : []
     }
 
-    # Eg: for fa_ees_1deg_10000, orbit number is 10000
+    # Get Orbit Number
     orbit_num = fileName.split('_')[-1]
 
-    # loop through each column
+    # Loop through each column
     for column, values in varDict.items():
 
         # replace 'isnan' with 'NULL' and set precision to 30
         values_list = values.tolist()
         values_updated = FormatValue(values_list, column)
                                   
-        # create empty lists 
+        # Create empty lists to store values
         altDataArr = [[] for _ in range(len(values_updated))]
 
-        # loop through each list in dictionary values
+        # Loop through each value in a field
         for index, value in enumerate(values_updated):
-            # If data is a list and the list is not empty
             if isinstance(value, list) and len(value) != 0:    
 
                 # Append values into each row           
                 for i in range(len(value)):
                     altDataArr[index].append(value[i])
 
-                # Get TIME
+                # Get TIME value for this index
                 time = decimal.Decimal("{:.{}f}".format(varDict["TIME"][index], 30))
                 
-                # Insert time at the beginning
+                # Insert TIME_ID, TIME, ORBIT at the beginning
                 altDataArr[index].insert(0, time)
-                
-                # Insert Orbit Number
                 altDataArr[index].insert(0, int(orbit_num))
+                # altDataArr[index].insert(0, )
 
                 # List of Time used to determine spectra for each row
                 list_of_time.append(time)
 
-            # If it is any other data types (not list)
             else:
                 dataArr[index].append(value)
         
-        # Only create alternate table for variables if its a list
+        # Only create alternate tables for fields with list of energy values 
         if any(altDataArr):
-            
-            # To Determine Upgoing and Downgoing 
-            if (column == "el_0_lc" or column == "el_180_lc"):
-                print(f"Determining Upgoing and Downgoing for {column}")
 
-                # Gets a list of TIME along with ILAT values
-                spectraDict = CheckSpectraFromNormalizedDB(list_of_time, column)
+            if column in ("el_0_lc", "el_180_lc"):
+                    print(f"Determining Upgoing and Downgoing for {column}")
+                    spectraDict = CheckIlatDirection(list_of_time, column)
+                    InsertSpectralValues(column, altDataArr, spectraDict)
 
-                # Create Alternate Table 
-                CreateAltAndInsertSpectraTable(column, altDataArr, spectraDict)
-
-            # To Determine Perpendicular (Computed outside for loop)
-            if column == "el_90_lcp12":
-                perpendicularTables[column] = altDataArr
-            if column == "el_270_lcp12":
+            elif column in ("el_90_lcp12", "el_270_lcp12"):
                 perpendicularTables[column] = altDataArr
 
-            # To Insert el_de into DB
-            if column == "el_de":
+            elif column == "el_de":
                 CreateAltAndInsertTable(column, altDataArr)
-
-    # Compute Perpendicular values
-    len_el_90_lcp12 = len(perpendicularTables["el_90_lcp12"])
-    len_el_270_lcp12 = len(perpendicularTables["el_270_lcp12"])
-
-    if len_el_90_lcp12 == 0 or len_el_270_lcp12 == 0 or len_el_90_lcp12 != len_el_270_lcp12:
-        print(f"Error in data: el_90_lcp12 and el_270_lcp12 cannot compute perpendicular spectra")
-        return dataArr 
-    
-    perpendicularVal = [[] for _ in range(len(perpendicularTables['el_270_lcp12']))]
-
-    print("Determining Perpendicular using el_270_lcp12 and el_90_lcp12")
-    
-    for ii in range(len_el_270_lcp12):
-        # Add Time 
-        perpendicularVal[ii].append(perpendicularTables["el_270_lcp12"][ii][0])
-
-        for jj in range(1, len(perpendicularTables["el_270_lcp12"][ii])):
-            if perpendicularTables['el_270_lcp12'][ii][jj] is None:
-                perpendicularTables['el_270_lcp12'][ii][jj] = decimal.Decimal(0.0)
-            elif perpendicularTables['el_90_lcp12'][ii][jj] is None:
-                perpendicularTables['el_90_lcp12'][ii][jj] = decimal.Decimal(0.0)
-        
-            # Compute Perpendicular Values
-            perpendicularVal[ii].append((perpendicularTables['el_270_lcp12'][ii][jj] + perpendicularTables['el_90_lcp12'][ii][jj]) / decimal.Decimal(2.0))
-
-    CreateAltAndInsertPerpendicularTable(perpendicularVal)
 
     # Add Orbit Num at the start of the list of list
     for ii in range(len(dataArr)):
         dataArr[ii].insert(0, orbit_num)
 
+    # Ensure both perpendicular tables have data and are of equal length
+    if not perpendicularTables.get("el_90_lcp12") or not perpendicularTables.get("el_270_lcp12") or \
+    len(perpendicularTables["el_90_lcp12"]) != len(perpendicularTables["el_270_lcp12"]):
+        print("Error in data: el_90_lcp12 and el_270_lcp12 cannot compute perpendicular spectra")
+        return dataArr 
+        
+    # Compute perpendicular values
+    perpendicularVal = []
+
+    print("Determining Perpendicular using el_270_lcp12 and el_90_lcp12")
+    
+    for ii in range(len(perpendicularTables["el_270_lcp12"])):
+        # Add Time 
+        time = perpendicularTables["el_270_lcp12"][ii][0]
+        perpendicular_values = []
+
+        for jj in range(1, len(perpendicularTables["el_270_lcp12"][ii])):
+            # Handle None values
+            el_270_value = perpendicularTables['el_270_lcp12'][ii][jj] or decimal.Decimal(0.0)
+            el_90_value = perpendicularTables['el_90_lcp12'][ii][jj] or decimal.Decimal(0.0)
+            
+            # Compute perpendicular value
+            perpendicular_value = (el_270_value + el_90_value) / decimal.Decimal(2.0)
+            perpendicular_values.append(perpendicular_value)
+
+    InsertPerpSpectralValues(perpendicularVal)
+
     return dataArr
 
 
 
-def CheckSpectraFromNormalizedDB(list_of_time: list, column: str): 
+def CheckIlatDirection(list_of_time: list, column: str): 
     """Checks Time from AIMSES_Norm to determine if time is upgoing, downgoing, or perpendicular"""
 
     if len(list_of_time) == 0:
@@ -253,8 +244,8 @@ def CheckSpectraFromNormalizedDB(list_of_time: list, column: str):
         results = cursor.fetchall()
 
         if results is None:
-            print(f"No TIME queried from database for {column}")
-            return None 
+            print(f"CheckIlatDirection(): No ILAT values queried from DB for field {column}")
+            return None
         
         for ii in range(len(results)):
             ilat = results[ii]['ILAT']
@@ -272,13 +263,6 @@ def CheckSpectraFromNormalizedDB(list_of_time: list, column: str):
                     spectraDict[time] = 'UPGOING'
                 elif ilat < 0: 
                     spectraDict[time] = 'DOWNGOING'
-
-            else:
-                return None
-
-        if results is None:
-            print(f"CheckSpectraFromNormalizedDB(): No ILAT values queried from DB for field {column}")
-            return None
         
     except mysql.connector.Error as e:
         print(f"Error: {e}")
@@ -292,8 +276,8 @@ def CheckSpectraFromNormalizedDB(list_of_time: list, column: str):
 
 
 
-def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: dict):
-    """ A function that takes creates/update another table if values are in a list/array format """
+def InsertSpectralValues(fieldName: str, values: list, spectraDict: dict):
+    """ A function that inserts spectral values into Upgoing and Downgoing Tables """
     
     try:
         # Establish a connection to the MySQL database
@@ -302,10 +286,7 @@ def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: di
 
         if len(values) == 0 or spectraDict is None:
             return None
-        
-        print(f"Creating Alternate Table for {fieldName}")
 
-        isFaulty = False 
         for ii in range(len(values)):
 
             time = values[ii][1]
@@ -315,45 +296,20 @@ def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: di
                 continue 
             
             spectra = spectraDict[time]
-            
-            create_alt_table_query = f"""
-            CREATE TABLE IF NOT EXISTS {spectra} (
-                TIME_ID INT PRIMARY KEY,
-                ORBIT INT, 
-                TIME DECIMAL(50,30) NULL, 
-            """
 
-            columnName = [] 
-
-            # 47 elements in a row
-            for jj in range(1, 48):
-                create_alt_table_query += f"ele_{jj} FLOAT NULL,"
-                columnName.append(f"ele_{jj}")
-            # create_alt_table_query = create_alt_table_query.rstrip(', ')
-            create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
-
-            try: 
-                cursor.execute(create_alt_table_query)
-                conn.commit()  
-            except Exception as e:
-                print(f"Error creating alternate table for {fieldName}: {str(e)}")
+            # Column names for Energy bins
+            columnName = [f"bin_{jj}" for jj in range(1, 48)]
             
             # Loop through each row 
             cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
             concatValues = ', '.join(map(str, cleaned_values))
-            query = f"INSERT INTO {spectra} (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
+            query = f"INSERT INTO {spectra} (TIME_ID, TIME, ORBIT, {','.join(columnName)}) VALUES ({concatValues});"
 
             try: 
                 cursor.execute(query)
                 conn.commit()
             except Exception as e:
-                isFaulty = True
                 print(f"{spectra} {fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
-
-        if isFaulty == False:
-            print(f"Successfully Inserted Values into Alternate Table for {fieldName}\n")
-        else:
-            print(f"Unsuccessfully Inserted Values into Alternate Table for {fieldName}\n")
 
         # Commit the changes and close the connection
         cursor.close()
@@ -369,125 +325,31 @@ def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: di
 
 
 
-def CreateAltAndInsertPerpendicularTable(values):
+def InsertPerpSpectralValues(values):
     """ A function that takes creates/update another table for perpendicular values """
 
     try:
         # Establish a connection to the MySQL database
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
-
-        print(f"Creating Alternate Table for Perpendicular Values\n")
-
-        create_alt_table_query = f"""
-        CREATE TABLE IF NOT EXISTS PERPENDICULAR (
-            TIME_ID INT AUTO_INCREMENT PRIMARY KEY,
-            ORBIT INT, 
-            TIME DECIMAL(50,30) NULL, 
-        """
-
-        columnName = [] 
-
-        # 47 elements in a row
-        for jj in range(1, 48):
-            create_alt_table_query += f"ele_{jj} FLOAT NULL,"
-            columnName.append(f"ele_{jj}")
-        # create_alt_table_query = create_alt_table_query.rstrip(', ')
-        create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
-
-        try: 
-            cursor.execute(create_alt_table_query)
-            conn.commit()  
-        except Exception as e:
-            print(f"Error creating table for perpendicular values: {str(e)}")
+        
+        # Column names for Energy bins
+        columnName = [f"bin_{jj}" for jj in range(1, 48)]
 
         print(f"Inserting Values into Alternate Table for Perpendicular Values")
             
         # Loop through each row 
-        isFaulty = False
         for ii in range(len(values)):
 
             cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
             concatValues = ', '.join(map(str, cleaned_values))
-            query = f"INSERT INTO PERPENDICULAR (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
+            query = f"INSERT INTO PERPENDICULAR (TIME_ID, TIME, ORBIT,{','.join(columnName)}) VALUES ({concatValues});"
 
             try: 
                 cursor.execute(query)
                 conn.commit()
             except Exception as e:
-                isFaulty = True 
                 print(f"Perpendicular Table: Error Inserting values at row {ii}: {str(e)}")
-
-        if isFaulty == False:
-            print(f"Successfully Inserted Values into Alternate Table for Perpendicular Values\n")
-
-        # Commit the changes and close the connection
-        cursor.close()
-        conn.close()
-    
-    except mysql.connector.Error as err:
-        print(f"Error pushing to database: {err}")
-
-    finally:
-        # Ensure the connection is closed in case of an exception
-        if 'conn' in locals():
-            conn.close()
-
-
-
-def CreateAltAndInsertTable(fieldName: str, values: list):
-    """ A function that takes creates/update another table if values are in a list/array format """
-    
-    try:
-        # Establish a connection to the MySQL database
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-
-        if len(values) == 0:
-            return None
-        
-        print(f"Creating Alternate Table for {fieldName}")
-
-        isFaulty = False 
-        for ii in range(len(values)):
-            
-            create_alt_table_query = f"""
-            CREATE TABLE IF NOT EXISTS {fieldName} (
-                ID INT AUTO_INCREMENT PRIMARY KEY,
-                ORBIT INT, 
-                TIME DECIMAL(50,30) NULL, 
-            """
-
-            columnName = [] 
-
-            # 47 elements in a row
-            for jj in range(1, 48):
-                create_alt_table_query += f"ele_{jj} FLOAT NULL,"
-                columnName.append(f"ele_{jj}")
-            create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
-
-            try: 
-                cursor.execute(create_alt_table_query)
-                conn.commit()  
-            except Exception as e:
-                print(f"Error creating alternate table for {fieldName}: {str(e)}")
-            
-            # Loop through each row 
-            cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
-            concatValues = ', '.join(map(str, cleaned_values))
-            query = f"INSERT INTO {fieldName} (ORBIT, TIME,{','.join(columnName)}) VALUES ({concatValues});"
-
-            try: 
-                cursor.execute(query)
-                conn.commit()
-            except Exception as e:
-                isFaulty = True
-                print(f"{fieldName} Table: Error Inserting values at row {ii}: {str(e)}")
-
-        if isFaulty == False:
-            print(f"Successfully Inserted Values into Alternate Table for {fieldName}\n")
-        else:
-            print(f"Unsuccessfully Inserted Values into Alternate Table for {fieldName}\n")
 
         # Commit the changes and close the connection
         cursor.close()
@@ -524,18 +386,15 @@ def FormatValue(values : list, column : str):
 
 
 
-def CreateTableQuery(varDict: dict, fileName: str):
-    """ A function that generates a query which creates a table if it does not exist and creates the columns  """
-
-    # Store Field who are not list of list 
-    mainTableColumns = []
+def CreateCdfTableQuery(varDict: dict):
+    """ A function that creates CDF_DATA table for each orbit """
 
     # Create table and columns 
-    query = f"CREATE TABLE IF NOT EXISTS CDF_DATA (ID INT AUTO_INCREMENT PRIMARY KEY, ORBIT INT, "
+    query = "CREATE TABLE IF NOT EXISTS CDF_DATA (TIME_ID INT PRIMARY KEY, ORBIT INT, "
 
     for column_name, column_data in varDict.items():
 
-        # Skip columns with list of lists
+        # Skip columns with list values (Because they have to be computed separately in a different table)
         if isinstance(column_data, np.ndarray) and any(isinstance(item, np.ndarray) for item in column_data):
             continue
         
@@ -561,9 +420,76 @@ def CreateTableQuery(varDict: dict, fileName: str):
 
         query += f"{column_name} {mysql_data_type}, "
 
-        mainTableColumns.append(column_name)
+        cdf_data_columns.append(column_name)
+    
+    query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
 
-    return (query.rstrip(', ') + ")", mainTableColumns)
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        try: 
+            # Create Table Query 
+            cursor.execute(query)
+            conn.commit()  
+        except Exception as e:
+            print(f"Error creating table: {str(e)}")
+
+        cursor.close()
+        conn.close()
+
+    except mysql.connector.Error as err:
+        print(f"Error pushing to database: {err}")
+
+    finally:
+        # Ensure the connection is closed in case of an exception
+        if 'conn' in locals():
+            conn.close()
+
+
+
+def CreateChildTableQuery(tables : list):
+    """ A function that generates a query which creates a table if it does not exist and creates the columns  """
+
+    try:
+        # Establish a connection to the MySQL database
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        
+        print(f"Creating Child Tables for Upgoing, Downgoing, and Perpendicular")
+        
+        for table_name in tables:
+            
+            create_alt_table_query = f"""
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                TIME_ID INT PRIMARY KEY,
+                ORBIT INT UNSIGNED, 
+                TIME DECIMAL(50,30) NULL, 
+            """
+
+            # 47 elements in a row
+            for jj in range(1, 48):
+                create_alt_table_query += f"bin_{jj} FLOAT NULL,"
+
+            create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
+
+            try: 
+                cursor.execute(create_alt_table_query)
+                conn.commit()  
+            except Exception as e:
+                print(f"Error creating child table for {table_name}: {str(e)}")
+
+        # Commit the changes and close the connection
+        cursor.close()
+        conn.close()
+    
+    except mysql.connector.Error as err:
+        print(f"Error pushing to database: {err}")
+
+    finally:
+        # Ensure the connection is closed in case of an exception
+        if 'conn' in locals():
+            conn.close()
 
 
 
@@ -638,7 +564,6 @@ def BinFileConverter(readFileDir, saveFileLocation):
 
 
 if __name__ == "__main__":
-
     path = os.path.expanduser("~/Desktop/cdf_files")
 
     try:
@@ -649,6 +574,8 @@ if __name__ == "__main__":
         if len(cdf_files) == 0:
             print(f"No CDF files detected in path:{path}")
         
+        # Loop through cdf files in a given directory
+        createTableCheck = False 
         for file in cdf_files: 
 
             print("-----------------------------------------------------------------------------------------------------")
@@ -660,15 +587,19 @@ if __name__ == "__main__":
 
             # Step 2: Get Variables and store it in a dictionary
             varDict = GetZVariables(file)
-
-            # Step 3: Push to DombeckDB 
-            PushToDataBase(varDict,fileName)
             
-            # Step 4: Insert to Reference Table (NOT REQUIRED)
+            # Step 3: Create tables if not created
+            CreateCdfTableQuery(varDict)
+            if not createTableCheck:
+                createTableCheck = True
+                CreateChildTableQuery(["DOWNGOING","UPGOING","PERPENDICULAR","el_de"])
+
+            # Step 4: Push to Database
+            # PushToDataBase(varDict,fileName)
+            
+            # Unused Functions
             # InsertToReferenceTable(varDict, fileName)
-        
+            # BinFileConverter('/Users/Bryan/Desktop/Dombeck/PythonScript/19.8e6ElecDng_vpara.bin','/Users/Bryan/desktop/')
+ 
         print(f"All cdf files in directory {path} successfully inserted into database\n\n\n")
 
-    # Unused Functions
-    # GetCDFfiles(os.path.expanduser("~/Desktop"))
-    # BinFileConverter('/Users/Bryan/Desktop/Dombeck/PythonScript/19.8e6ElecDng_vpara.bin','/Users/Bryan/desktop/')
