@@ -10,15 +10,11 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/spectra.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/selection.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/modal.css') }}">
-
-        <script src="//code.jquery.com/jquery.min.js"></script>        
-        <script src="{{ url_for('static', filename='scripts/scripts.js') }}"></script>
-        <script src="{{ url_for('static', filename='scripts/charts.js') }}"></script>
+      
         <script src="{{ url_for('static', filename='scripts/filterSelection.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
         <title>AIMSES</title>
     </head>
@@ -787,23 +783,23 @@
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">+1σ
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">-1σ
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">Median 
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">25% 
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
                 <label class="spectraRequirementsContainer" style="margin-top:10px;">75% 
-                    <input type="checkbox">
+                    <input type="checkbox" checked="checked">
                     <span class="checkmark"></span>
                 </label>
             </div>
@@ -919,32 +915,43 @@
                 var allYValues = []; 
 
                 // Gradient Colors
-                var meanGradient = ctx.createLinearGradient(0, 0, 0, 300);
-                meanGradient.addColorStop(0, 'rgba(250, 121, 112, 0.6)');
-                meanGradient.addColorStop(1, 'rgba(0, 0, 0,0.1)');
+                // Red (-sigma)
+                const minusSigmaColor = "rgba(250,121,112,0.6)";
+                const minusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 500);
+                minusSigmaGradient.addColorStop(0, 'rgba(250, 121, 112, 0.15)');
+                minusSigmaGradient.addColorStop(1, 'rgba(250, 121, 112, 0)');
 
-                var medianGradient = ctx.createLinearGradient(0, 0, 0, 300);
-                medianGradient.addColorStop(0, 'rgba(250, 163, 86, 0.6)');
-                medianGradient.addColorStop(1, 'rgba(0, 0, 0,0.2)');
+                // Orange (75 percentile)
+                const percentile75Color = "rgba(250,163,86,0.6)";
+                const percentile75Gradient = ctx.createLinearGradient(0, 0, 0, 500);
+                percentile75Gradient.addColorStop(0, 'rgba(250, 163, 86, 0.15)');
+                percentile75Gradient.addColorStop(1, 'rgba(250, 163, 86, 0)');
 
-                var plusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 300);
-                plusSigmaGradient.addColorStop(0, 'rgba(124,227,139, 0.6)');
-                plusSigmaGradient.addColorStop(1, 'rgba(0, 0, 0,0.1)');
+                // Green (25 percentile)
+                const percentile25Color = "rgba(124,227,139,0.6)";
+                const percentile25Gradient = ctx.createLinearGradient(0, 0, 0, 500);
+                percentile25Gradient.addColorStop(0, 'rgba(124,227,139, 0.15)');
+                percentile25Gradient.addColorStop(1, 'rgba(124,227,139, 0)');
 
-                var minusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 300);
-                minusSigmaGradient.addColorStop(0, 'rgba(3, 218, 198, 0.6)');
-                minusSigmaGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+                // Cyan (+ sigma)
+                const plusSigmaColor = "rgba(3,218,198,0.6)";
+                const plusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 500);
+                plusSigmaGradient.addColorStop(0, 'rgba(3, 218, 198, 0.15)');
+                plusSigmaGradient.addColorStop(1, 'rgba(3, 218, 198, 0)');
 
-                var percentile25Gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                percentile25Gradient.addColorStop(0, 'rgba(119,189,251, 0.6)');
-                percentile25Gradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+                // Blue (Median)
+                const medianColor = "rgba(119,189,251,0.6)";
+                const medianGradient = ctx.createLinearGradient(0, 0, 0, 500);
+                medianGradient.addColorStop(0, 'rgba(119,189,251, 0.15)');
+                medianGradient.addColorStop(1, 'rgba(119,189,251, 0)');
 
-                var percentile75Gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                percentile75Gradient.addColorStop(0, 'rgba(206,165,251,  0.6)');
-                percentile75Gradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+                // Purple (Mean)
+                const meanColor = "rgba(206,165,251,0.6)";
+                const meanGradient = ctx.createLinearGradient(0, 0, 0, 500);
+                meanGradient.addColorStop(0, 'rgba(206,165,251, 0.15)');
+                meanGradient.addColorStop(1, 'rgba(206,165,251, 0)');
 
-
-                // Define a lookup table for common properties
+                // Define a lookup table for common properties (Without Gradient)
                 // const propertiesLookup = {
                 //     "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
                 //     "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
@@ -954,14 +961,14 @@
                 //     "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: 'statistics' }
                 // };
 
-                // Define a lookup table for common properties
+                // Define a lookup table for common properties (With Gradient)
                 const propertiesLookup = {
-                    "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: meanGradient, borderDash: [0,0], yAxisID: 'statistics' },
-                    "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: medianGradient, borderDash: [10,10], yAxisID: 'statistics' },
-                    "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: plusSigmaGradient, borderDash: [2,2], yAxisID: 'statistics' },
-                    "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: minusSigmaGradient, borderDash: [0,0], yAxisID: 'statistics' },
-                    "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: percentile25Gradient, borderDash: [10,10], yAxisID: 'statistics' },
-                    "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: percentile75Gradient, borderDash: [2,2], yAxisID: 'statistics' }
+                    "Mean": { borderColor: meanColor, backgroundColor: meanGradient, borderDash: [0,0], yAxisID: 'statistics' },
+                    "Median": { borderColor: medianColor, backgroundColor: medianGradient, borderDash: [10,10], yAxisID: 'statistics' },
+                    "+1\u03c3": { borderColor: plusSigmaColor, backgroundColor: plusSigmaGradient, borderDash: [2,2], yAxisID: 'statistics' },
+                    "-1\u03c3": { borderColor: minusSigmaColor, backgroundColor: minusSigmaGradient, borderDash: [0,0], yAxisID: 'statistics' },
+                    "25%": { borderColor: percentile25Color, backgroundColor: percentile25Gradient, borderDash: [10,10], yAxisID: 'statistics' },
+                    "75%": { borderColor: percentile75Color, backgroundColor: percentile75Gradient, borderDash: [2,2], yAxisID: 'statistics' }
                 };
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
@@ -1070,11 +1077,28 @@
                     }
                 };
 
+                let delayed = false;
+
                 // Create a new chart Instance
                 var myChart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: xValues, datasets: yValues },
                     options: {
+                        animation: {
+                            // onComplete: () => {
+                            //     console.log("Animation complete");
+                            //     delayed = true;
+                            // },
+                            // delay: (context) => {
+                            //     let delay = 0;
+                            //     if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                            //         delay = context.dataIndex * 300 + context.datasetIndex * 100;
+                            //     }
+                            //     console.log("Delay: ", delay);
+                            //     return delay;
+                            // },
+                            easing: "easeInOutBack"
+                        },
                         responsive: true,
                         maintainAspectRatio: true,
                         plugins: {

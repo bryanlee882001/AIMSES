@@ -37,7 +37,7 @@ def GetZVariables(path: str):
     # NOTE:
     # If you want to limit fields which are pushed to database, then remove the fields from this array 
     varNeeded = ['TIME','JEe_0lc','JEe_180lc','JEe_0t90','JEe_90t180','Je_0lc','Je_180lc',
-             'Je_0t90','Je_90t180','el_0_lc','el_180_lc','el_90_lcp12','el_270_lcp12','el_en']
+             'Je_0t90','Je_90t180','el_0_lc','el_180_lc','el_90_lcp12','el_270_lcp12','el_de']
 
     # Read CDF file into a CDF object
     try: 
@@ -190,8 +190,8 @@ def CompileDataIntoQueryFormat(varDict: dict, fileName: str):
             if column == "el_270_lcp12":
                 perpendicularTables[column] = altDataArr
 
-            # To Insert el_en into DB
-            if column == "el_en":
+            # To Insert el_de into DB
+            if column == "el_de":
                 CreateAltAndInsertTable(column, altDataArr)
 
     # Compute Perpendicular values
@@ -318,7 +318,7 @@ def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: di
             
             create_alt_table_query = f"""
             CREATE TABLE IF NOT EXISTS {spectra} (
-                ID INT AUTO_INCREMENT PRIMARY KEY,
+                TIME_ID INT PRIMARY KEY,
                 ORBIT INT, 
                 TIME DECIMAL(50,30) NULL, 
             """
@@ -327,9 +327,10 @@ def CreateAltAndInsertSpectraTable(fieldName: str, values: list, spectraDict: di
 
             # 47 elements in a row
             for jj in range(1, 48):
-                create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+                create_alt_table_query += f"ele_{jj} FLOAT NULL,"
                 columnName.append(f"ele_{jj}")
-            create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
+            # create_alt_table_query = create_alt_table_query.rstrip(', ')
+            create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
 
             try: 
                 cursor.execute(create_alt_table_query)
@@ -380,7 +381,7 @@ def CreateAltAndInsertPerpendicularTable(values):
 
         create_alt_table_query = f"""
         CREATE TABLE IF NOT EXISTS PERPENDICULAR (
-            ID INT AUTO_INCREMENT PRIMARY KEY,
+            TIME_ID INT AUTO_INCREMENT PRIMARY KEY,
             ORBIT INT, 
             TIME DECIMAL(50,30) NULL, 
         """
@@ -389,9 +390,10 @@ def CreateAltAndInsertPerpendicularTable(values):
 
         # 47 elements in a row
         for jj in range(1, 48):
-            create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+            create_alt_table_query += f"ele_{jj} FLOAT NULL,"
             columnName.append(f"ele_{jj}")
-        create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
+        # create_alt_table_query = create_alt_table_query.rstrip(', ')
+        create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
 
         try: 
             cursor.execute(create_alt_table_query)
@@ -460,7 +462,7 @@ def CreateAltAndInsertTable(fieldName: str, values: list):
 
             # 47 elements in a row
             for jj in range(1, 48):
-                create_alt_table_query += f"ele_{jj} DOUBLE NULL,"
+                create_alt_table_query += f"ele_{jj} FLOAT NULL,"
                 columnName.append(f"ele_{jj}")
             create_alt_table_query = create_alt_table_query.rstrip(', ') + ");"
 
@@ -543,6 +545,8 @@ def CreateTableQuery(varDict: dict, fileName: str):
         # Add more decimal places for TIME
         if column_name == "TIME":
             mysql_data_type = 'DECIMAL(50,30)'
+        elif column_name == "ORBIT":    
+            mysql_data_type = 'INT UNSIGNED'
         else: 
             data_type = str(column_data.dtype)
             if 'int' in data_type:
@@ -635,7 +639,7 @@ def BinFileConverter(readFileDir, saveFileLocation):
 
 if __name__ == "__main__":
 
-    path = os.path.expanduser("~/Desktop")
+    path = os.path.expanduser("~/Desktop/cdf_files")
 
     try:
         cdf_files = glob.glob(os.path.join(path, '*.cdf'))
@@ -665,5 +669,6 @@ if __name__ == "__main__":
         
         print(f"All cdf files in directory {path} successfully inserted into database\n\n\n")
 
+    # Unused Functions
     # GetCDFfiles(os.path.expanduser("~/Desktop"))
     # BinFileConverter('/Users/Bryan/Desktop/Dombeck/PythonScript/19.8e6ElecDng_vpara.bin','/Users/Bryan/desktop/')

@@ -11,17 +11,13 @@ db_config = db_info.db_configuration
 
 def queryDataDict(string_query : str, parameters: list, spectra: str):
     """A function that executes the query to extract data in the form of a dictionary format from MySQL Database"""
+    
     try:
-
         yAxisData = {}
 
-        # Connect to MySQL
+        # Connect to MySQL and execute query with parameters
         connection = mysql.connector.connect(**db_config)
-
-        # Create cursor
         cursor = connection.cursor()
-
-        # Execute SQL query with parameters
         cursor.execute(string_query, parameters)
 
         # Fetch data
@@ -47,15 +43,14 @@ def queryDataDict(string_query : str, parameters: list, spectra: str):
 
 def queryMissionCount(string_query: str, parameters: List[float]) -> Tuple[int, int]:
     """A function that executes the query to extract mission count data from MySQL Database """
+    
     try:
-        # Connect to MySQL
+        # Connect to MySQL and execute query 
         connection = mysql.connector.connect(**db_config)
-
-        # Create cursor 
         cursor = connection.cursor()
-
-        # Execute the early mission query
         cursor.execute(string_query, parameters)
+
+        # Fetch data 
         earlyMissionCount, lateMissionCount = cursor.fetchone()
         
         return earlyMissionCount, lateMissionCount 
@@ -74,7 +69,7 @@ def computeStatistics(input_data: dict, yAxisData: dict):
     """ A function that computes the statistics of the data """
 
     # Get User's Input on Statistics
-    if "Statistics" not in input_data:
+    if "Statistics" not in input_data or "Spectra" not in input_data or "Normalization" not in input_data:
         return 0 
     
     computed_data = {}
@@ -141,6 +136,8 @@ def computeStatistics(input_data: dict, yAxisData: dict):
             # 142     endfor
             # Do I need el_de to compute normalization? 
             # How do I compute the statistics then since normalization itself returns the final 47 elements. 
+
+            # 1 spectra for each orbit and each time. 
 
             # Compute Statistics
             if "Mean" in statistics_required:
