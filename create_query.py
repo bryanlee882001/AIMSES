@@ -2,6 +2,38 @@ import utility
 from typing import Tuple, List, Union
 
 
+def getTIMEQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
+    """A function that determines the range for MLT based on user input for querying"""
+    if not filterData:
+        return string_query, []
+
+    parameters = []
+    # Check Range
+    rangeType = filterData.get("Range")
+    if rangeType == "Between":
+        minRange = utility.convertTIMEtoEPOCH(filterData.get("minRange"))
+        maxRange = utility.convertTIMEtoEPOCH(filterData.get("maxRange"))
+
+        # Everything between 2 and 22 
+        string_query += "(AIMSES_NORM.TIME BETWEEN %s AND %s) AND "
+        parameters.extend([minRange, maxRange])
+
+    elif rangeType == "Lesser Than":
+        lesserThanValue = utility.convertTIMEtoEPOCH(filterData.get("lesserThanValue"))
+        string_query += "(AIMSES_NORM.TIME <= %s) AND "
+        parameters.append(lesserThanValue)
+
+    elif rangeType == "Greater Than":
+        greaterThanValue = utility.convertTIMEtoEPOCH(filterData.get("greaterThanValue"))
+        string_query += "(AIMSES_NORM.TIME >= %s) AND "
+        parameters.append(greaterThanValue)
+
+    else:
+        raise ValueError("No range type specified")
+
+    return string_query, parameters
+
+
 def getMLTQuery(string_query: str, filterData: dict) -> Tuple[str, List[Union[float, int]]]:
     """A function that determines the range for MLT based on user input for querying"""
     if not filterData:
@@ -309,11 +341,12 @@ def genericFilterQuery(string_query: str, filterData: dict, column: str, paramet
         raise ValueError("Invalid or No Range Selected")
 
     return string_query, parameters
-    
+
 
 def createQueryForMission(dataDict: dict) -> Tuple[str, str, List[float], List[float]]:
     """A function that creates queries based on user input for mission"""
     filter_functions = {
+        "TIME": getTIMEQuery,
         "MLT": getMLTQuery,
         "ILAT": getILATQuery,
         "ALT": getALTQuery,
@@ -373,6 +406,7 @@ def createJoinQuery(dataDict: dict):
     """
 
     filter_functions = {
+        "TIME": getTIMEQuery,
         "MLT": getMLTQuery,
         "ILAT": getILATQuery,
         "ALT": getALTQuery,
@@ -397,16 +431,30 @@ def createJoinQuery(dataDict: dict):
     else:
         spectral_table_name = "PERPENDICULAR"
 
-    string_query = f"SELECT {spectral_table_name}.* FROM AIMSES_NORM JOIN {spectral_table_name} ON AIMSES_NORM.TIME = {spectral_table_name}.TIME WHERE "
+    el_de_query = f"""SELECT el_de.*
+                       FROM AIMSES_NORM 
+                       JOIN el_de
+                       ON AIMSES_NORM.ID = el_de.TIME_ID
+                       WHERE """
+    
+    string_query = f"""SELECT {spectral_table_name}.*
+                   FROM AIMSES_NORM 
+                   JOIN {spectral_table_name} 
+                   ON AIMSES_NORM.ID = {spectral_table_name}.TIME_ID
+                   WHERE """
 
     parameters = []
 
     for key, func in filter_functions.items():
         if key in dataDict:
             string_query, params = func(string_query, dataDict[key])
+            el_de_query, params = func(el_de_query, dataDict[key])
             parameters.extend(params)
 
     if string_query.endswith('AND '):
         string_query = string_query[:-4]
+    
+    if el_de_query.endswith('AND '):
+        el_de_query = el_de_query[:-4]
 
-    return string_query, parameters, dataDict["Spectra"][0]
+    return string_query, el_de_query, parameters, dataDict["Spectra"][0]
