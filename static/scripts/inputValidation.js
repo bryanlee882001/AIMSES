@@ -6,6 +6,9 @@ function validateFilters() {
     var results = [];
 
     // Check MLT Filter and store the result
+    results.push(validateTIME("filter_time"));
+
+    // Check MLT Filter and store the result
     results.push(validateMLT("filter_mlt"));
 
     // Check ILAT Filter and store the result
@@ -294,6 +297,104 @@ function validateNonEmptyNumericInputs(containerId) {
         container.style.borderColor = 'white'
     }
     
+    return isTrue;
+}
+
+
+// A function that validates if all time inputs in a filterContainer adheres to datetime format
+function validateTIME(containerId) {
+    // Get Container and Clear Error Messages before validating again
+    var container = document.getElementById(containerId);
+    clearErrors(container);
+
+    var isTrue = true;
+
+    // Get the computed style of the container element
+    var computedStyle = window.getComputedStyle(container);
+
+    // Check if the display property is set to 'none'
+    if (computedStyle.display === 'none') {
+        // If the container is hidden, return true immediately
+        return isTrue;
+    }
+
+    // Check selected value of rangeSelect
+    var rangeSelect = container.querySelector('#rangeSelect');
+    if (rangeSelect.options[rangeSelect.selectedIndex].text == "Select a Range") {
+        document.getElementById("error_message_range").innerText = "Please select a Range option";
+        document.getElementById("error_message_range").style.display = "block";
+        rangeSelect.style.borderColor = 'rgb(222,82,82)';
+        isTrue = false;
+    }
+    
+    // Check selected value of rangeSelect
+    var errorMessage = container.querySelector("#error_message_range");
+
+    // Regular expression to match the format "HH:MM:SS"
+    const regex = /^(199[6-9]|200[0-9])-((0[1-9])|(1[0-2]))-((0[1-9])|([1-2][0-9])|(3[0-1])) (([0-1][0-9])|([2][0-4])):([0-5][0-9]):([0-5][0-9])$/;
+
+    if (rangeSelect.value === 'between') {
+        // Check if minRange and maxRange are filled and are in time format
+        var minRange = container.querySelector('#minRange');
+        var maxRange = container.querySelector('#maxRange');
+
+        if (!regex.test(minRange.value.trim())) {
+            errorMessage.innerText = "Please enter a valid time within Mission range in the format 'YYYY-MM-DD HH:MM:SS' for Min Range";
+            errorMessage.style.display = "block";
+            minRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+
+        if (!regex.test(maxRange.value.trim()))  {
+            errorMessage.innerText = "Please enter a valid time within Mission range in the format 'YYYY-MM-DD HH:MM:SS' for Max Range";
+            errorMessage.style.display = "block";
+            maxRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+
+        if (!regex.test(maxRange.value.trim()) && !regex.test(minRange.value.trim()))  {
+            errorMessage.innerText = "Please enter a valid time within Mission range in the format 'YYYY-MM-DD HH:MM:SS' for both Min and Max Ranges";
+            errorMessage.style.display = "block";
+            maxRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+
+        if (Date(minRange.value.trim()) > Date(maxRange.value.trim())) {
+            errorMessage.innerText = "Maximum Range is greater than Minimum Range";
+            errorMessage.style.display = "block";
+            maxRange.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;  
+        }
+    } else if (rangeSelect.value === 'lesserThan') {
+        // Check if lesserThanValue is filled and is in time format
+        var lesserThanValue = container.querySelector('#lesserThanValue');
+
+        if (!regex.test(lesserThanValue.value.trim())) {
+            errorMessage.innerText = "Please enter a valid time in the format 'HH:MM:SS' for Lesser Than Range";
+            errorMessage.style.display = "block";
+            lesserThanValue.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+    } else if (rangeSelect.value === 'greaterThan') {
+        // Check if greaterThanValue is filled and is in time format
+        var greaterThanValue = container.querySelector('#greaterThanValue');
+
+        if (!regex.test(greaterThanValue.value.trim())) {
+            errorMessage.innerText = "Please enter a valid time in the format 'HH:MM:SS' for Greater Than Range";
+            errorMessage.style.display = "block";
+            greaterThanValue.style.borderColor = 'rgb(222,82,82)';
+            isTrue = false;
+        }
+    }
+
+    // Highlight filterContainer Red if there's an Error
+    if (!isTrue) {
+        container.style.borderColor = 'rgb(222,82,82)';
+    }
+    else {
+        container.style.borderColor = 'white'
+    }
+
     return isTrue;
 }
 

@@ -33,6 +33,7 @@
             <div class = "selectionCategory" id="location">
                 <h3>Location</h3>
                 <div class="selectionCategoryContainer">
+                    <button class="selectionButton" onclick="toggleVisibility('filter_time')">TIME</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_mlt')">MLT</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_ilat')">ILAT</button>
                     <button class="selectionButton" onclick="toggleVisibility('filter_alt')">ALT</button>
@@ -65,7 +66,53 @@
         <!-- Select Values for Chosen Filters -->
         <p style="margin-left: -580px; margin-bottom: -20px; margin-top: 60px; font-weight: 900;">STEP 2: Select Values for Selected Filters</p>
         <div class ="filterFrame">
-                
+
+            <!-- TIME Filter -->
+            <div class="filterContainer" id="filter_time">
+                <div class="filterTitle">TIME</div>
+                <div class="filterDescription">DateTime Format: YYYY-MM-DD HH:MM:SS <br/> <br/> Mission Start Date: 21 August 1996 <br/>Mission End Date: 4 May 2009 </div>
+                <div class="filterGrid">
+                    <div> 
+                        <label id="rangeLabel" for="rangeSelect" style="display:block;">Range:</label>
+                        <select id="rangeSelect" onchange="toggleFields('filter_time')">
+                            <option value="" disabled selected>Select a Range</option>
+                            <option value="between">Between</option>
+                            <option value="lesserThan">Lesser Than</option>
+                            <option value="greaterThan">Greater Than</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="minRangeLabel" for="minRange" style="margin-left: 10px;">From</label>
+                        <div class="inputContainer">
+                            <input type="text" id="minRange" name="minRange" class="between" placeholder="Insert Value" style="display: none;"></input>
+                            <span id="minRangeUnit" style="display: none;"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label id="maxRangeLabel" for="maxRange" style="margin-left: 10px;">To</label>
+                        <div class="inputContainer">
+                            <input type="text" id="maxRange" name="maxRange" class="between" placeholder="Insert Value" style="display: none;">
+                            <span id="maxRangeUnit" style="display: none;"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label id="lesserThanLabel" for="lesserThanValue" style="margin-left: 10px;">Lesser Than</label>
+                        <div class="inputContainer">
+                            <input type="text" id="lesserThanValue" name="lesserThanValue" class="lesserThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="lesserThanUnit" style="display: none;"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label id="greaterThanLabel" for="greaterThanValue" style="margin-left: 10px;">Greater Than</label>
+                        <div class="inputContainer">
+                            <input type="text" id="greaterThanValue" name="greaterThanValue" class="greaterThanInput" placeholder="Insert Value" style="display: none;">
+                            <span id="greaterThanUnit" style="display: none;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div id="error_message_range" class="error_message" style="display: none;"></div>
+            </div>
+
             <!-- MLT Filter  -->
             <div class="filterContainer" id="filter_mlt">
                 <div class="filterTitle">MLT</div>
@@ -871,6 +918,7 @@
             <div class="spectraPanelContiner">
                 <span class="close" onclick="closeModal()">&times;</span>
                 <h2>Statistical Electron Spectra Graph Generation</h2>
+                <hr style="opacity: 0.3;"><br/>
 
                 <!-- <div id="modalContent" class="modalContent"></div> -->
 
@@ -879,7 +927,7 @@
                 <div id="selectionCriteriaContainter" class="selectionCriteriaContainter"></div><br/><br/>
 
                 <!-- Graph Generated here -->
-                <p style="font-weight: 900;">Spectra Analysis</p>
+                <p style="font-weight: 900;">Spectral Analysis</p>
                 <div class="chartsContainer">
                     <canvas id="myChart" style="width:80%; height: 50%;"></canvas>  
                 </div><br/>
@@ -916,60 +964,52 @@
 
                 // Gradient Colors
                 // Red (-sigma)
-                const minusSigmaColor = "rgba(250,121,112,0.6)";
-                const minusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 500);
-                minusSigmaGradient.addColorStop(0, 'rgba(250, 121, 112, 0.15)');
-                minusSigmaGradient.addColorStop(1, 'rgba(250, 121, 112, 0)');
+                const RED_COLOR = "rgba(250,121,112,0.6)";
+                const RED_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                RED_GRADIENT.addColorStop(0, 'rgba(250, 121, 112, 0.15)');
+                RED_GRADIENT.addColorStop(1, 'rgba(250, 121, 112, 0)');
 
                 // Orange (75 percentile)
-                const percentile75Color = "rgba(250,163,86,0.6)";
-                const percentile75Gradient = ctx.createLinearGradient(0, 0, 0, 500);
-                percentile75Gradient.addColorStop(0, 'rgba(250, 163, 86, 0.15)');
-                percentile75Gradient.addColorStop(1, 'rgba(250, 163, 86, 0)');
+                const ORANGE_COLOR = "rgba(250,163,86,0.6)";
+                const ORANGE_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                ORANGE_GRADIENT.addColorStop(0, 'rgba(250, 163, 86, 0.15)');
+                ORANGE_GRADIENT.addColorStop(1, 'rgba(250, 163, 86, 0)');
 
                 // Green (25 percentile)
-                const percentile25Color = "rgba(124,227,139,0.6)";
-                const percentile25Gradient = ctx.createLinearGradient(0, 0, 0, 500);
-                percentile25Gradient.addColorStop(0, 'rgba(124,227,139, 0.15)');
-                percentile25Gradient.addColorStop(1, 'rgba(124,227,139, 0)');
+                const GREEN_COLOR = "rgba(124,227,139,0.6)";
+                const GREEN_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                GREEN_GRADIENT.addColorStop(0, 'rgba(124,227,139, 0.15)');
+                GREEN_GRADIENT.addColorStop(1, 'rgba(124,227,139, 0)');
 
                 // Cyan (+ sigma)
-                const plusSigmaColor = "rgba(3,218,198,0.6)";
-                const plusSigmaGradient = ctx.createLinearGradient(0, 0, 0, 500);
-                plusSigmaGradient.addColorStop(0, 'rgba(3, 218, 198, 0.15)');
-                plusSigmaGradient.addColorStop(1, 'rgba(3, 218, 198, 0)');
+                const CYAN_COLOR = "rgba(3,218,198,0.6)";
+                const CYAN_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                CYAN_GRADIENT.addColorStop(0, 'rgba(3, 218, 198, 0.15)');
+                CYAN_GRADIENT.addColorStop(1, 'rgba(3, 218, 198, 0)');
 
                 // Blue (Median)
-                const medianColor = "rgba(119,189,251,0.6)";
-                const medianGradient = ctx.createLinearGradient(0, 0, 0, 500);
-                medianGradient.addColorStop(0, 'rgba(119,189,251, 0.15)');
-                medianGradient.addColorStop(1, 'rgba(119,189,251, 0)');
+                const BLUE_COLOR = "rgba(119,189,251,0.6)";
+                const BLUE_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                BLUE_GRADIENT.addColorStop(0, 'rgba(119,189,251, 0.15)');
+                BLUE_GRADIENT.addColorStop(1, 'rgba(119,189,251, 0)');
 
                 // Purple (Mean)
-                const meanColor = "rgba(206,165,251,0.6)";
-                const meanGradient = ctx.createLinearGradient(0, 0, 0, 500);
-                meanGradient.addColorStop(0, 'rgba(206,165,251, 0.15)');
-                meanGradient.addColorStop(1, 'rgba(206,165,251, 0)');
-
-                // Define a lookup table for common properties (Without Gradient)
-                // const propertiesLookup = {
-                //     "Mean": { borderColor: "rgba(250,121,112,0.5)", backgroundColor: "rgba(250,121,112,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
-                //     "Median": { borderColor: "rgba(250,163,86,0.5)", backgroundColor: "rgba(250,163,86,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
-                //     "+1\u03c3": { borderColor: "rgba(124,227,139,0.5)", backgroundColor: "rgba(124,227,139,1.0)", borderDash: [2,2], yAxisID: 'statistics' },
-                //     "-1\u03c3": { borderColor: "rgba(3,218,198,0.5)", backgroundColor: "rgba(3,218,198,1.0)", borderDash: [0,0], yAxisID: 'statistics' },
-                //     "25%": { borderColor: "rgba(119,189,251,0.5)", backgroundColor: "rgba(119,189,251,1.0)", borderDash: [10,10], yAxisID: 'statistics' },
-                //     "75%": { borderColor: "rgba(206,165,251,0.5)", backgroundColor: "rgba(206,165,251,1.0)", borderDash: [2,2], yAxisID: 'statistics' }
-                // };
+                const PURPLE_COLOR = "rgba(206,165,251,0.6)";
+                const PURPLE_GRADIENT = ctx.createLinearGradient(0, 0, 0, 500);
+                PURPLE_GRADIENT.addColorStop(0, 'rgba(206,165,251, 0.15)');
+                PURPLE_GRADIENT.addColorStop(1, 'rgba(206,165,251, 0)');
 
                 // Define a lookup table for common properties (With Gradient)
                 const propertiesLookup = {
-                    "Mean": { borderColor: meanColor, backgroundColor: meanGradient, borderDash: [0,0], yAxisID: 'statistics' },
-                    "Median": { borderColor: medianColor, backgroundColor: medianGradient, borderDash: [10,10], yAxisID: 'statistics' },
-                    "+1\u03c3": { borderColor: plusSigmaColor, backgroundColor: plusSigmaGradient, borderDash: [2,2], yAxisID: 'statistics' },
-                    "-1\u03c3": { borderColor: minusSigmaColor, backgroundColor: minusSigmaGradient, borderDash: [0,0], yAxisID: 'statistics' },
-                    "25%": { borderColor: percentile25Color, backgroundColor: percentile25Gradient, borderDash: [10,10], yAxisID: 'statistics' },
-                    "75%": { borderColor: percentile75Color, backgroundColor: percentile75Gradient, borderDash: [2,2], yAxisID: 'statistics' }
+                    "Mean": { borderColor: RED_COLOR, backgroundColor: RED_GRADIENT, borderDash: [0,0], yAxisID: 'statistics' },
+                    "+1\u03c3": { borderColor: ORANGE_COLOR, backgroundColor: ORANGE_GRADIENT, borderDash: [2,2], yAxisID: 'statistics' },
+                    "-1\u03c3": { borderColor: PURPLE_COLOR, backgroundColor: PURPLE_GRADIENT, borderDash: [2,2], yAxisID: 'statistics' },
+                    "Median": { borderColor: BLUE_COLOR, backgroundColor: BLUE_GRADIENT, borderDash: [0,0], yAxisID: 'statistics' },
+                    "25%": { borderColor: GREEN_COLOR, backgroundColor: GREEN_GRADIENT, borderDash: [10,10], yAxisID: 'statistics' },
+                    "75%": { borderColor: CYAN_COLOR, backgroundColor: CYAN_GRADIENT, borderDash: [10,10], yAxisID: 'statistics' }
                 };
+
+                console.log(resultData.result.yAxis);
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
                 for (var statKey in resultData.result.yAxis) {
@@ -993,9 +1033,13 @@
                 var minY = Math.min(...allYValues);
                 var maxY = Math.max(...allYValues);
 
+                let displayed = [];
+                const tickValues = [10e4, 10e5, 10e6, 10e7, 10e8, 10e9, 10e10];
+
                 // Create a dynamic scales object for both x and y axes
                 var scales = {
                     statistics: {
+                        type: 'logarithmic',
                         title: {
                             display: true,
                             font: {
@@ -1012,6 +1056,19 @@
                             color: 'rgb(255, 255, 255, 0.4)'
                         },
                         ticks: {
+                            maxTickLimit: 4,
+                            autoSkip: false, 
+                            min: Math.pow(10, Math.floor(Math.log10(minY))),
+                            max: Math.pow(10, Math.ceil(Math.log10(maxY))),
+                            callback: function(value, index, values) {
+                                var labels = [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10];
+                                
+                                var formattedValue = labels.find(label => value <= label);
+                                if (formattedValue !== undefined && value === formattedValue) {
+                                    return formattedValue.toExponential();
+                                } 
+                                return '';
+                            },
                             color: "rgb(255,255,255,0.7)",
                             font : {
                                 size: 13
@@ -1024,20 +1081,16 @@
                         ticks: {
                             maxTickLimit: 6,
                             autoSkip: true, 
-                            min: Math.pow(10, Math.floor(Math.log10(Math.min(...xValues)))),
-                            max: Math.pow(10, Math.ceil(Math.log10(Math.max(...xValues)))),
+                            min: Math.min(...xValues),
+                            max: Math.max(...xValues),
                             callback: function(value, index, values) {
-                                var labels = [0, 10, 100, 1000, 10000];
-                                var max = Math.max(...values);
-                                if (value === max) {
-                                    return ''; 
-                                }
+                                var labels = [10, 100, 1000, 10000];
+
                                 var formattedValue = labels.find(label => value <= label);
                                 if (formattedValue !== undefined && value === formattedValue) {
                                     return formattedValue;
-                                } else {
-                                    return ''; 
-                                }
+                                } 
+                                return '';
                             },
                             color: "rgb(255,255,255,0.7)",
                             font : {
@@ -1058,7 +1111,7 @@
                             lineWidth: 0.5, 
                             tickColor: 'rgb(255, 255, 255, 1)',
                             color: 'rgb(255, 255, 255, 0.4)'
-                        }
+                        }, 
                     }
                 };
 
@@ -1085,19 +1138,7 @@
                     data: { labels: xValues, datasets: yValues },
                     options: {
                         animation: {
-                            // onComplete: () => {
-                            //     console.log("Animation complete");
-                            //     delayed = true;
-                            // },
-                            // delay: (context) => {
-                            //     let delay = 0;
-                            //     if (context.type === 'data' && context.mode === 'default' && !delayed) {
-                            //         delay = context.dataIndex * 300 + context.datasetIndex * 100;
-                            //     }
-                            //     console.log("Delay: ", delay);
-                            //     return delay;
-                            // },
-                            easing: "easeInOutBack"
+                            duration: 0
                         },
                         responsive: true,
                         maintainAspectRatio: true,
