@@ -14,17 +14,17 @@ def processData():
         return jsonify({'result': 0}) 
 
     # 1: Create Join Query Based on Selection Criterias and Filters
-    string_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
+    string_query, el_de_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
 
     # 2: Query from database
-    queried_results = utility.queryDataDict(string_query, parameters, spectral_table_name)
+    queried_results, el_de_data = utility.queryDataDict(string_query, el_de_query, parameters, spectral_table_name)
 
-    if queried_results == 0:
+    if queried_results == 0 or el_de_data == 0:
         return jsonify({'result': 0})   
     
     # 3. Compute Statistics
-    result = utility.computeStatistics(data, queried_results) 
-    
+    result = utility.computeStatistics(data, queried_results, el_de_data) 
+
     # 4. Returns final Y values after computing statistics 
     return jsonify({'result': result}) 
 

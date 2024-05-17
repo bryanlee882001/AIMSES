@@ -77,17 +77,15 @@ def InsertCDFValues(data_list_of_lists : list, timeIdDict : dict):
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-
-
         columns = ', '.join(cdf_data_columns)
 
-        count = 0 
+        numRow = 0 
         for i in range(len(data_list_of_lists)):
 
             if data_list_of_lists[i][1] not in timeIdDict:
                 continue 
 
-            count += 1
+            numRow += 1
 
             data_list_of_lists[i].insert(0, int(timeIdDict[data_list_of_lists[i][1]]))
 
@@ -101,7 +99,7 @@ def InsertCDFValues(data_list_of_lists : list, timeIdDict : dict):
             except Exception as e:
                 print(f"{fileName} Table: Error Inserting values at row {i}: {str(e)}")
 
-        print(f"Successfully inserted data into {count} of {len(data_list_of_lists)} row(s)")
+        print(f"Successfully inserted data into {numRow} of {len(data_list_of_lists)} row(s)")
 
         cursor.close()
         conn.close()
@@ -132,6 +130,7 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
     dataArr = [[] for _ in range(len(varDict["TIME"]))]
 
     list_of_time = []
+    indices_to_remove = []
     
     # Dictionary to store perpendicular values
     perpendicularTables = { "el_90_lcp12" : [], "el_270_lcp12" : [] }
@@ -172,16 +171,23 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
                 list_of_time.append(time)
 
             else:
+                # dataArr[index].append(decimal.Decimal("{:.{}f}".format(value, 7)))
                 dataArr[index].append(value)
         
         # Only create alternate tables for fields with list of energy values 
+        # check = False 
         if any(altDataArr):
             altDataArr = [arr for arr in altDataArr if arr]
+            # indices_to_remove = [index for index, arr in enumerate(altDataArr) if not arr]
+
+            # for index in reversed(indices_to_remove):
+            #     del altDataArr[index]
 
             if column in ("el_0_lc", "el_180_lc"):
                 print(f"Determining Upgoing and Downgoing for {column}")
                 spectraDict = CheckIlatDirection(list_of_time, column)
                 InsertSpectralValues(column, altDataArr, spectraDict)
+                # check = True
 
             elif column in ("el_90_lcp12", "el_270_lcp12"):
                 perpendicularTables[column] = altDataArr
@@ -266,9 +272,9 @@ def CheckIlatDirection(list_of_time: list, column: str):
 
             if column == "el_180_lc":
                 if ilat > 0:
-                    spectraDict[time] = 'DOWNGOING'
-                else:
                     spectraDict[time] = 'UPGOING'
+                else:
+                    spectraDict[time] = 'DOWNGOING'
         
     except mysql.connector.Error as e:
         print(f"Error: {e}")
@@ -649,7 +655,7 @@ if __name__ == "__main__":
             print(f"No CDF files detected in path:{path}")
         
         # Loop through cdf files in a given directory
-        createTableCheck = False 
+        checkTableCreation = False 
         for file in cdf_files: 
 
             print("-----------------------------------------------------------------------------------------------------")
@@ -670,9 +676,9 @@ if __name__ == "__main__":
 
             # Step 4: Create tables if not created
             CreateCdfTableQuery(varDict)
-            if not createTableCheck:
+            if not checkTableCreation:
                 CreateChildTableQuery(["DOWNGOING","UPGOING","PERPENDICULAR","el_de"])
-                createTableCheck = True
+                checkTableCreation = True
 
             # Step 5: Compile cdf data into a list of lists 
             data_list_of_lists = CompileCdfData(varDict, fileName, timeIdDict)
