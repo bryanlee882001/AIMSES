@@ -1,5 +1,4 @@
-# AIMSES
-## Auroral Ionospheric Magnetospheric Statistical Electron Spectra
+# Auroral Ionospheric Magnetospheric Statistical Electron Spectra (AIMSES)
 
 ## Project Description
 A web application that computes spectral statistics from data obtained from the Fast Auroral SnapshoT Explorer (FAST) satellite. 
