@@ -14,8 +14,11 @@ Sortable by:
 ```
 Location: TIME, MLT, ILAT, ALT
 Ionospheric Conditions: SZA, F10.7
-Magnetospheric Conditions: EFLUX, NFLUX, CONJUGATE SZA, KP, AE, DST, SW DRIVING, LCA, MECHANISMS
+Magnetospheric Conditions: EFLUX, NFLUX, CONJUGATE SZA, KP, AE, 
+                           DST, SW DRIVING, LCA, MECHANISMS
 ```
+
+<br/>
 
 ## ER Diagram
 ![AIMSES ER Diagram](https://github.com/bryanlee882001/AIMSES/assets/63344458/68d90a77-51c1-4d54-b87f-e695f073ba27)
