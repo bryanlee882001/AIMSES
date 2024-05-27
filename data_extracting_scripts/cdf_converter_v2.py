@@ -71,12 +71,12 @@ def GetZVariables(path: str):
                         updated_time_list.append(decimal.Decimal("{:.{}f}".format(time_list[i], 30)))
                     varDict[f"{zVariables[ii]}"] = updated_time_list
                 else:
-                    lst = cdf.varget(zVariables[ii])
+                    lst = cdf.varget(zVariables[ii]).tolist()
                     for j in range(len(lst)):
-                        if isinstance(lst[j], np.ndarray):
+                        if isinstance(lst[j], list):
                             for k in range(len(lst[j])):
                                 lst[j][k] = decimal.Decimal("{:.{}f}".format(lst[j][k], 7))
-                        else: 
+                        else:         
                             lst[j] = decimal.Decimal("{:.{}f}".format(lst[j] , 7))
                     # Insert values into Dictionary based on column names
                     varDict[f"{zVariables[ii]}"] = lst
@@ -113,7 +113,7 @@ def InsertCDFValues(data_list_of_lists : list, timeIdDict : dict):
                 cursor.execute(query)
                 conn.commit()
             except Exception as e:
-                print(f"{fileName} Table: Error Inserting values at row {i}: {str(e)}")
+                print(f"{fileName} Table: Error Inserting values at row {i}: {query} {str(e)}")
 
         print(f"Successfully inserted data into {numRow} of {len(data_list_of_lists)} row(s)")
 
@@ -146,8 +146,7 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
     dataArr = [[] for _ in range(len(varDict["TIME"]))]
 
     list_of_time = []
-    indices_to_remove = []
-    
+
     # Dictionary to store perpendicular values
     perpendicularTables = { "el_90_lcp12" : [], "el_270_lcp12" : [] }
 
@@ -158,8 +157,9 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
     for column, values in varDict.items():
 
         # replace 'isnan' with 'NULL' and set precision to 30
-        values_list = values.tolist()
-        values_updated = FormatValue(values_list, column)
+        # values_list = values.tolist()
+        # values_updated = FormatValue(values_list, column)
+        values_updated = values
                                   
         # Create empty lists to store values
         altDataArr = [[] for _ in range(len(values_updated))]
@@ -167,7 +167,8 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
         # Loop through each value in a field
         for index, value in enumerate(values_updated):
             # Get TIME value for this index
-            time = decimal.Decimal("{:.{}f}".format(varDict["TIME"][index], 30))
+            # time = decimal.Decimal("{:.{}f}".format(varDict["TIME"][index], 30))
+            time = varDict["TIME"][index]
 
             if isinstance(value, list) and len(value) != 0:    
 
@@ -187,7 +188,6 @@ def CompileCdfData(varDict: dict, fileName: str, timeIdDict : dict):
                 list_of_time.append(time)
 
             else:
-                # dataArr[index].append(decimal.Decimal("{:.{}f}".format(value, 7)))
                 dataArr[index].append(value)
         
         # Only create alternate tables for fields with list of energy values 
@@ -319,7 +319,7 @@ def InsertSpectralValues(fieldName: str, values: list, spectraDict: dict):
                 cleaned_values = ['Null' if math.isnan(val) else val for val in values[ii]]
                 concatValues = ', '.join(map(str, cleaned_values))
                 query = f"INSERT IGNORE INTO {fieldName} (TIME_ID, TIME, ORBIT, {','.join(columnName)}) VALUES ({concatValues});"
-                
+
                 try: 
                     cursor.execute(query)
                     conn.commit()
@@ -430,7 +430,7 @@ def CreateCdfTableQuery(varDict: dict):
     for column_name, column_data in varDict.items():
 
         # Skip columns with list values (Because they have to be computed separately in a different table)
-        if isinstance(column_data, np.ndarray) and any(isinstance(item, np.ndarray) for item in column_data):
+        if isinstance(column_data, list) and any(isinstance(item, list) for item in column_data):
             continue
         
         # Map numpy data types to MySQL data types
@@ -440,16 +440,7 @@ def CreateCdfTableQuery(varDict: dict):
         elif column_name == "ORBIT":    
             mysql_data_type = 'INT UNSIGNED'
         else: 
-            data_type = str(column_data.dtype)
-            if 'int' in data_type:
-                mysql_data_type = 'INT'
-            elif 'float' in data_type:
-                mysql_data_type = 'DOUBLE'
-            elif 'datetime' in data_type:
-                mysql_data_type = 'DATETIME'
-            else:
-                # Default to VARCHAR for strings
-                mysql_data_type = 'VARCHAR(255)'  
+            mysql_data_type = 'DOUBLE NULL'
 
         query += f"{column_name} {mysql_data_type}, "
 
@@ -502,7 +493,7 @@ def CreateChildTableQuery(table_names : list):
 
             # 47 elements in a row
             for jj in range(1, 48):
-                create_alt_table_query += f"bin_{jj} FLOAT NULL,"
+                create_alt_table_query += f"bin_{jj} DOUBLE NULL,"
 
             create_alt_table_query += "FOREIGN KEY (TIME_ID) REFERENCES AIMSES_NORM(ID));"
 
@@ -580,6 +571,7 @@ def GetTimeIdValues(varDict : dict):
         return time_id_dict
 
 
+
 def RemoveMissingTime(varDict : dict, timeIdDict : dict):
     # Step 1: Identify TIME values in varDict not present in timeIdDict
     missing_times = [time for time in varDict['TIME'] if time not in timeIdDict]
@@ -589,9 +581,8 @@ def RemoveMissingTime(varDict : dict, timeIdDict : dict):
 
     # Step 3: Remove the corresponding elements from each key in varDict
     for key in varDict.keys():
-        # Check if the list contains lists (i.e., list of lists)
+        # Check if the list contains lists
         if isinstance(varDict[key], np.ndarray):
-            # Remove the elements at the identified indices from list of lists
             varDict[key] = [item for i, item in enumerate(varDict[key]) if i not in indices_to_remove]
         else:
             # Remove the elements at the identified indices from list of integers/floats
@@ -698,15 +689,24 @@ if __name__ == "__main__":
             fileDir = os.path.basename(file)
             fileName = os.path.splitext(fileDir)[0]
             print(f"Processing file: {fileDir}\n")
-
+            
             # Step 2: Get Variables and store it in a dictionary
             varDict = GetZVariables(file)
 
-            # Step 3: Get TIME_ID from AIMSES_NORM for each TIME
+            print(f'Time Taken to extract zVariables from {fileName}: {time.time() - start_time}s \n')
+            start_time = time.time()
+
+            # Step 3: Get TIME_ID from AIMSES_NORM for each row
             timeIdDict = GetTimeIdValues(varDict)
 
-            # Step 4: Remove Missing TIME from varDict
+            print(f'Time Taken to get TIME_ID from AIMSES_NORM: {time.time() - start_time}s \n')
+            start_time = time.time()
+
+            # Step 4: Discard rows from varDict which do not correspond to any TIME value in AIMSES_NORM
             updated_varDict = RemoveMissingTime(varDict, timeIdDict)
+
+            print(f'Time Taken to get removing Missing TIME from varDict: {time.time() - start_time}s \n')
+            start_time = time.time()
 
             # Step 4: Create tables if not created
             CreateCdfTableQuery(varDict)
@@ -714,13 +714,22 @@ if __name__ == "__main__":
                 CreateChildTableQuery(["DOWNGOING","UPGOING","PERPENDICULAR","el_de"])
                 checkTableCreation = True
 
+            print(f'Time Taken to create tables in mysql: {time.time() - start_time}s \n')
+            start_time = time.time()
+
             # Step 5: Compile cdf data into a list of lists 
             data_list_of_lists = CompileCdfData(varDict, fileName, timeIdDict)
 
+            print(f'Time Taken to compile cdf data and insert into subtables: {time.time() - start_time}s \n')
+            start_time = time.time()
+
             # Step 6: Push to Database
             InsertCDFValues(data_list_of_lists, timeIdDict)
+
+            print(f'Time Taken to insert values into CDF_DATA table: {time.time() - start_time}s \n')
+
             
-            print(f'Data inserted successfully for {fileName}. Time Taken: {time.time() - start_time}s \n')
+            # print(f'Data inserted successfully for {fileName}. Time Taken: {time.time() - start_time}s \n')
             print("-----------------------------------------------------------------------------------------------------")
  
         print(f"\nAll cdf files in directory {path} successfully inserted into MySQL Database\n\n")
