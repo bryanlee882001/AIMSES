@@ -63,7 +63,7 @@ function generateSpectra() {
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {   
                 
-                // console.log(result);
+                console.log(result);
                 
                 // Assign to global Variable
                 resultData = JSON.parse(result);                
@@ -91,6 +91,7 @@ function generateSpectra() {
                 // Output the time difference in seconds
                 console.log("Total Time taken to generate Spectra: " + totalSeconds + " seconds");
                 
+
                 inputData = '';
                 inputDict = {};
 

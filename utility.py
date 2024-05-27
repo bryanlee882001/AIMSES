@@ -99,6 +99,7 @@ def computeNormalization(el_de_data : list, input_data : dict, yAxisData : dict)
     dict_el_de = {el_de_lst[0]: el_de_lst[3:] for el_de_lst in el_de_data}
 
     normalized_data = [] 
+    result = []
 
     mission = input_data["Mission"][0]
     mission_en = {
@@ -110,11 +111,7 @@ def computeNormalization(el_de_data : list, input_data : dict, yAxisData : dict)
     normalization = input_data["Normalization"][0]
 
     # Normalized data
-    true = False
     for time_id in dict_bins.keys() & dict_el_de.keys():
-
-        if true:
-            break 
 
         np_dict_bins = np.array(dict_bins[time_id])
         np_el_de = np.array(dict_el_de[time_id])
@@ -129,8 +126,8 @@ def computeNormalization(el_de_data : list, input_data : dict, yAxisData : dict)
             normalized_data.append(result.tolist())
 
     # return normalized_data
-    return np_dict_bins.tolist(), np_el_de.tolist(), np_mission_de.tolist(), result.tolist()
-        
+    return normalized_data
+
 
 def computeStatistics(input_data: dict, yAxisData: dict, el_de_data : dict):
     """ A function that computes the statistics of the queried data """
@@ -140,22 +137,27 @@ def computeStatistics(input_data: dict, yAxisData: dict, el_de_data : dict):
         return 0 
     
     computed_data = {}
+    normalized_data = []
+
+    if input_data["Normalization"][0] != "Raw":
+        normalized_data = computeNormalization(el_de_data, input_data, yAxisData)
+    else:
     
-    # Get yAxisData in terms of list of list 
-    yAxisList = yAxisData[input_data["Spectra"][0]]
+        # Get yAxisData in terms of list of list 
+        yAxisList = yAxisData[input_data["Spectra"][0]]
 
-    if yAxisList: 
+        if yAxisList:
+            for lst in yAxisList:
+                normalized_data.append(lst[3:])
 
-        normalized_values = []
-        for lst in yAxisList:
-            normalized_values.append(lst[3:])
+    if normalized_data: 
 
         # Initialize empty lists to store the calculated statistics for each index
         statistics_required = input_data["Statistics"]
         computed_statistics = {stat: [] for stat in statistics_required}
 
         # Transpose normalized values
-        transposed_values = zip(*normalized_values)
+        transposed_values = zip(*normalized_data)
         
         # Iterate over transposed values
         for elements in transposed_values:
