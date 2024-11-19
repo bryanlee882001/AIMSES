@@ -1,0 +1,12 @@
+services:
+  web:
+    image: aimses-web-application-web:latest
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    container_name: aimses-web
+    restart: always
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./db:/app/db
+    logging:
+      driver: "none"

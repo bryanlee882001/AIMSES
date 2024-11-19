@@ -1,60 +1,147 @@
-# Auroral Ionospheric Magnetospheric Statistical Electron Spectra (AIMSES)
+# Auroral Ionospheric Magnetospheric Statistical Electron Spectra (AIMSES) Web Application
 
-## Project Description
-A web application that computes spectral statistics from data obtained from the NASA's Fast Auroral SnapshoT Explorer (FAST) satellite. 
+A web application that computes spectral statistics from data obtained from the NASA's Fast Auroral SnapshoT Explorer (FAST) satellite
+based on geographical, ionospheric, and magnetospheric criteria
 
-Provides:
+## System Requirements
+
+- Docker Desktop
+- 4GB RAM minimum
+- 100GB available disk space (30GB for file and 70GB for Docker Image)
+- Operating System:
+  1. Linux (x86_64 or ARM64)
+  2. Windows 10/11 (x86_64 or ARM64)
+  3. macOS (x86_64 or ARM64)
+
+## Installation Steps
+
+### Windows Installation:
+
+1. Extract the Application Files
+
+   - Extract the provided ZIP file to a directory of your choice
+
+2. Build the Application
+
+   - Open Command Prompt
+   - Navigate to the extracted directory:
+     > cd path\to\extracted\folder
+   - Run the build script:
+     > .\build.bat init
+   - Wait for the build process to complete
+
+3. Start the Application
+   - In the same Command Prompt, run:
+     > .\manage-app.bat start
+   - The application will be available at http://localhost:5005
+
+### Mac Installation:
+
+1. Extract the Application Files
+
+   - Extract the provided ZIP file:
+     > unzip application.zip -d destination_folder
+   - Navigate to the extracted directory:
+     > cd destination_folder
+
+2. Set Execute Permissions
+
+   - Make the scripts executable:
+     > chmod +x build.sh manage-app.sh
+
+3. Build the Application
+
+   - Run the build script:
+     > ./build.sh init
+   - Wait for the build process to complete
+
+4. Start the Application
+   - Run:
+     > ./manage-app.sh start
+   - The application will be available at http://localhost:5005
+
+## Managing the Application
+
+Windows Commands:
+
 ```
-Statistics: Mean, +1/-1σ, Median, 25%, 75%
-Spectra: Downward, Upward, Mirroring
-Normalization: Raw, Energy Flux, Number Flux
+# Start the application
+.\manage-app.bat start
+
+# Stop the application
+.\manage-app.bat stop
+
+# Remove the application completely
+.\manage-app.bat delete
 ```
 
-Sortable by:
+Mac Commands:
+
 ```
-Location: TIME, MLT, ILAT, ALT
-Ionospheric Conditions: SZA, F10.7
-Magnetospheric Conditions: EFLUX, NFLUX, CONJUGATE SZA, KP, AE, 
-                           DST, SW DRIVING, LCA, MECHANISMS
+# Start the application
+./manage-app.sh start
+
+# Stop the application
+./manage-app.sh stop
+
+# Remove the application completely
+./manage-app.sh delete
 ```
 
-<br/>
+## Troubleshooting
 
-## ER Diagram
-![AIMSES ER Diagram](https://github.com/bryanlee882001/AIMSES/assets/63344458/68d90a77-51c1-4d54-b87f-e695f073ba27)
+Common Issues:
 
-<br/>
+1. Port Already in Use
 
-## Prerequisites and Instructions
+   - Error: "port 5005 already allocated"
+   - Solution: Stop any application using port 5005 or modify docker-compose.dev.yml to use a different port
 
-1. Install Docker on your Desktop and Log into your Docker Account: [Installation Guide](https://docs.docker.com/get-docker/)
+2. Docker Not Running
 
-2. Navigate to Your Project Directory: Open your terminal and change directory (cd) to your project folder where your docker-compose.yml file is located.
+   - Error: "Cannot connect to the Docker daemon"
+   - Solution: Start Docker Desktop and wait until it's running (whale icon should be steady)
 
-3. For Mac with M1 Chip Instructions: If you're using a Mac with an M1 chip,
-   uncomment line 7 in your 'docker-compose.yml'
-   `platform: linux/x86_64`
+3. Permission Denied (Mac)
 
-4. Run the following command to start your project:
-   `docker-compose up`
+   - Error: "permission denied" when running scripts
+   - Solution: Run chmod +x on the scripts again
 
-5. Access the Wesbtie: Open a web browser of your choice: http://127.0.0.1:5005/ . This URL should display your website or application running in Docker.
+4. Build Fails
 
-6. Shutting Down Website: First, run 'docker ps' to find the list of running
-   containers. Find the container name associated with the web application image and run this command (Assuming that you've named the container aimses-web):
-   `docker stop aimses-web`
+   - Try running with the delete command first, then rebuild:
 
-<br/>
+   Windows:
 
-### Pulling Docker Image from Docker Hub:
+   ```
+   .\manage-app.bat delete
+   .\build.bat init
+   ```
 
-1. Log in to Docker Hub (If not already logged in)
+   Mac:
 
-2. Pull the image from Docker Hub by running this command:
-   `docker pull <private for now>:latest`
+   ```
+   ./manage-app.sh delete
+   ./build.sh init
+   ```
 
-3. Run Containers Using Pulled image: Once the image is pulled successfully, you can create a container from it using:
-   `docker run -d --name aimses-web <private for now>:latest`
+For Additional Help:
 
-4. Access Website using web browser of your choice: http://127.0.0.1:5005/
+- Check Docker Desktop logs
+- Ensure all required files are present in the correct directory structure
+- Verify Docker Desktop has adequate resources allocated (Memory, CPU)
 
+## Uninstallation
+
+To completely remove the application:
+
+1. Stop and remove containers:
+   Windows:
+
+   > .\manage-app.bat delete
+
+   Mac:
+
+   > ./manage-app.sh delete
+
+2. Delete the application directory

@@ -59,12 +59,16 @@ function generateSpectra() {
             var inputData = createFilterSelectionSummary(inputDict);
             
             console.log(inputDict);
+            
+            // Show loading screen
+            document.getElementById('loadingContainer').style.display="block";
+            animateLoadingPanel("loading-text");
 
             // Send data to backend
             sendDataToBackend(inputDict).then(result => {   
                 
-                console.log(result);
-                
+                document.getElementById('loadingContainer').style.display="none";
+
                 // Assign to global Variable
                 resultData = JSON.parse(result);                
                 
@@ -91,18 +95,20 @@ function generateSpectra() {
                 // Output the time difference in seconds
                 console.log("Total Time taken to generate Spectra: " + totalSeconds + " seconds");
                 
-
                 inputData = '';
                 inputDict = {};
 
             }).catch(error => {
                 clearFilters();
                 console.error('Error:', error);
+                document.getElementById('loadingContainer').style.display="none";
+                alert("Error Generating Graphs: " + error);
                 return
             });
         }
         else {
             clearFilters();
+            document.getElementById('loadingContainer').style.display="none";
             alert("Ensure that selection ranges are correct in Step 2");
         }
     }
@@ -599,4 +605,18 @@ function clearFilters() {
     }
 }
 
+// Function to animate loading screen
+function animateLoadingPanel(elementId) {
+    const loadingText = document.getElementById(elementId);
+    let dotCount = 0;
 
+    // Clear any existing interval
+    if (loadingText.intervalId) {
+        clearInterval(loadingText.intervalId);
+    }
+
+    loadingText.intervalId = setInterval(() => {
+        dotCount = (dotCount + 1) % 4; // Cycle through 0 to 3
+        loadingText.innerText = `Generating Graph${'.'.repeat(dotCount)}`;
+    }, 500);
+}

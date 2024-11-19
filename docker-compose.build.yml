@@ -1,0 +1,7 @@
+services:
+  web:
+    container_name: aimses-web-build
+    build: .
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    ports:
+      - "5005:5000"

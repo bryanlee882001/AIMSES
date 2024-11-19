@@ -1,4 +1,4 @@
-import utility
+from app import utility
 from typing import Tuple, List, Union
 
 
@@ -401,8 +401,8 @@ def createQueryForMission(dataDict: dict) -> Tuple[str, str, List[float], List[f
 
 def createJoinQuery(dataDict: dict): 
     """
-    A function that creates a join query between time values in AIMSES_NORM and UPGOING/DOWNGOING/PERP
-    based on user selection criteria. 
+    Creates a join query between time values in AIMSES_NORM and UPGOING/DOWNGOING/PERP
+    for SQLite syntax.
     """
 
     filter_functions = {
@@ -430,18 +430,19 @@ def createJoinQuery(dataDict: dict):
         spectral_table_name = "UPGOING"
     else:
         spectral_table_name = "PERPENDICULAR"
-
+    
+    # Updated SQLite syntax
     el_de_query = f"""SELECT el_de.*
-                       FROM AIMSES_NORM 
-                       JOIN el_de
-                       ON AIMSES_NORM.ID = el_de.TIME_ID
-                       WHERE """
+                     FROM AIMSES_NORM 
+                     JOIN el_de
+                     ON AIMSES_NORM.ID = el_de.TIME_ID
+                     WHERE """
     
     string_query = f"""SELECT {spectral_table_name}.*
-                   FROM AIMSES_NORM 
-                   JOIN {spectral_table_name} 
-                   ON AIMSES_NORM.ID = {spectral_table_name}.TIME_ID
-                   WHERE """
+                      FROM AIMSES_NORM 
+                      JOIN {spectral_table_name} 
+                      ON AIMSES_NORM.ID = {spectral_table_name}.TIME_ID
+                      WHERE """
 
     parameters = []
 

@@ -1,9 +1,16 @@
 from flask import Flask, request, jsonify, render_template
-import create_query
-import utility
+from . import create_query
+from . import utility
+import os
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+# Configure SQLite database with path relative to project root
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLITE_DATABASE_URI', 'sqlite:///db/database.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 
 @app.route('/process-data', methods=['POST']) 
 def processData(): 
@@ -46,6 +53,5 @@ def missionData():
 def index():
     return render_template("index.html")
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False, host='0.0.0.0', port=5000)

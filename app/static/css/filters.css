@@ -9,6 +9,11 @@ select{
     border-radius: 10px;
 }
 
+select option {
+    background-color: rgb(0, 0, 0);
+    padding: 8px;
+}
+
 select:hover{
     border: 2px solid white;
 }
