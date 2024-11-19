@@ -14,7 +14,7 @@ case "$1" in
     "delete")
         echo "Stopping and removing web application..."
         docker-compose -f docker-compose.dev.yml down
-        docker rmi aimses-web-application-web:latest
+        docker rmi aimses-web:latest
         echo "Application removed"
         ;;
     *)

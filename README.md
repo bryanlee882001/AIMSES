@@ -21,7 +21,7 @@ based on geographical, ionospheric, and magnetospheric criteria
 
    - Extract the provided ZIP file to a directory of your choice
 
-2. Build the Application
+2. Build the Application (Note: You only have to build it once)
 
    - Open Command Prompt
    - Navigate to the extracted directory:
@@ -49,7 +49,7 @@ based on geographical, ionospheric, and magnetospheric criteria
    - Make the scripts executable:
      > chmod +x build.sh manage-app.sh
 
-3. Build the Application
+3. Build the Application (Note: You only have to build it once)
 
    - Run the build script:
      > ./build.sh init

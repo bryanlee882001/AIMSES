@@ -18,7 +18,7 @@ if "%1"=="stop" (
 if "%1"=="delete" (
     echo Stopping and removing web application...
     docker-compose -f docker-compose.dev.yml down
-    docker rmi aimses-web-application-web:latest
+    docker rmi aimses-web:latest
     echo Application removed
     exit /b 0
 )

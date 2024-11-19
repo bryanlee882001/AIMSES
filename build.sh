@@ -19,7 +19,7 @@ build_initial() {
     docker rmi $PROJECT_NAME-web:latest 2>/dev/null || true
 
     export DOCKER_PLATFORM=$PLATFORM
-    docker-compose -f docker-compose.build.yml --build --no-cache
+    docker-compose -f docker-compose.build.yml build --no-cache
 
     echo "Image built successfully!"
 }
