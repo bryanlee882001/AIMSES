@@ -26,7 +26,15 @@
             <p>Auroral Ionosopheric Magnetospheric Statistical Electron Spectra</p>
         </div>
 
+        <!-- Loading Panel -->
+        <div class="loadingContainer" id="loadingContainer">
+            <div class="loadingPanel">
+                <div class="loader"></div>
+                <h2 id="loading-text">Generating Graph...</h2>
+            </div>    
+        </div>
 
+        
         <!-- Choose Filters -->
         <p style="margin-left: -650px; margin-bottom: -20px; margin-top: 30px; font-weight: 900;">STEP 1: Select Filtering Criteria</p>
         <div class = "selectionFrame"> 
@@ -943,6 +951,11 @@
             // Function to create chart when user clicks on generateSpectra button 
             function createCharts() {
 
+                if (!resultData || !resultData.result || !resultData.result.yAxis) {
+                    console.error("Invalid resultData");
+                    return;
+                }
+
                 // Get the canvas element
                 var canvas = document.getElementById('myChart');
                 var ctx = canvas.getContext('2d');
@@ -1009,7 +1022,7 @@
                     "75%": { borderColor: CYAN_COLOR, backgroundColor: CYAN_GRADIENT, borderDash: [10,10], yAxisID: 'statistics' }
                 };
 
-                console.log(resultData.result.yAxis);
+                console.log(resultData);
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
                 for (var statKey in resultData.result.yAxis) {
@@ -1061,7 +1074,10 @@
                             min: Math.pow(10, Math.floor(Math.log10(minY))),
                             max: Math.pow(10, Math.ceil(Math.log10(maxY))),
                             callback: function(value, index, values) {
-                                var labels = [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10];
+
+                                var labels = [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 
+                                1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 
+                                1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12];
                                 
                                 var formattedValue = labels.find(label => value <= label);
                                 if (formattedValue !== undefined && value === formattedValue) {

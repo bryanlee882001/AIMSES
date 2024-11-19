@@ -1,2 +1,8 @@
-# Database Information 
-data_extracting_scripts/db_info.py
+# db info
+app/db_info.py
+
+# db file
+db/database.db
+
+# cache
+*.pyc
