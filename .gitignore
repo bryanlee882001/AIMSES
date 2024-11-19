@@ -6,3 +6,4 @@ db/database.db
 
 # cache
 *.pyc
+.DS_Store
