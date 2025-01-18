@@ -1,57 +1,77 @@
-from flask import Flask, request, jsonify, render_template
-from . import create_query
-from . import utility
 import os
+import sys
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
+from .query_builder import QueryBuilder  
+from .aimses import AIMSES  
 
 app = Flask(__name__)
 
-# Configure SQLite database with path relative to project root
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLITE_DATABASE_URI', 'sqlite:///db/database.db')
+# Database Configuration
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db', 'database.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
+
 
 @app.route('/process-data', methods=['POST']) 
 def processData(): 
     data = request.json['data'] 
-
-    # 0: Check if there's any user input (other than statistics, spectra, normalization, and mission)
-    if utility.hasFilters(data) == False:
-        return jsonify({'result': 0}) 
-
-    # 1: Create Join Query Based on Selection Criterias and Filters
-    string_query, el_de_query, parameters, spectral_table_name = create_query.createJoinQuery(data)
-
-    # 2: Query from database
-    queried_results, el_de_data = utility.queryDataDict(string_query, el_de_query, parameters, spectral_table_name)
-
-    if queried_results == 0 or el_de_data == 0:
-        return jsonify({'result': 0})   
     
-    # 3. Compute Statistics
-    result = utility.computeStatistics(data, queried_results, el_de_data) 
-
-    # 4. Returns final Y values after computing statistics 
-    return jsonify({'result': result}) 
+    try:
+        # Initialize AIMSES for events
+        aimses = AIMSES('events', data)
+        
+        # Get events from database
+        events = aimses.get_events()
+        if not events:
+            return jsonify({'result': 0, 'error': "No Events found"})
+        
+        # Compute statistics
+        aimses.compute_statistics()
+        
+        # Get final statistics
+        result = aimses.get_final_statistics()
+        
+        return jsonify({'result': result})
+    
+    except Exception as e:
+        print(f"Error processing data: {str(e)}")
+        return jsonify({'result': 0, 'error': str(e)})
 
 
 @app.route('/mission-data', methods=['POST']) 
 def missionData(): 
     data = request.json['data'] 
-
-    # Create queries for early and late missions
-    string_query, parameters = create_query.createQueryForMission(data)
-
-    # Get earlyMission count and lateMission count
-    earlyMissionCount, lateMissionCount = utility.queryMissionCount(string_query, parameters)
-
-    return jsonify({'result': (earlyMissionCount, lateMissionCount)}) 
+    
+    try:
+        # Initialize AIMSES for count
+        aimses = AIMSES('count', data)
+        
+        # Get events count
+        success = aimses.get_events()
+        if not success:
+            return jsonify({'result': (0, 0)})
+        
+        # Get final count
+        counts = aimses.get_final_count()
+        
+        return jsonify({
+            'result': (
+                counts['early_mission'],
+                counts['late_mission']
+            )
+        })
+    
+    except Exception as e:
+        print(f"Error getting mission data: {str(e)}")
+        return jsonify({'result': (0, 0), 'error': str(e)})
 
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)

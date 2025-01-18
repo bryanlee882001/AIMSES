@@ -14,7 +14,10 @@
         <script src="{{ url_for('static', filename='scripts/filterSelection.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/inputValidation.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/generateSpectra.js') }}"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+        <script src="{{ url_for('static', filename='libs/chart.min.js') }}"></script>
+
 
         <title>AIMSES</title>
     </head>
@@ -951,6 +954,12 @@
             // Function to create chart when user clicks on generateSpectra button 
             function createCharts() {
 
+                if (typeof Chart === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                    document.head.appendChild(script);
+                }
+
                 if (!resultData || !resultData.result || !resultData.result.yAxis) {
                     console.error("Invalid resultData");
                     return;
@@ -1021,8 +1030,6 @@
                     "25%": { borderColor: GREEN_COLOR, backgroundColor: GREEN_GRADIENT, borderDash: [10,10], yAxisID: 'statistics' },
                     "75%": { borderColor: CYAN_COLOR, backgroundColor: CYAN_GRADIENT, borderDash: [10,10], yAxisID: 'statistics' }
                 };
-
-                console.log(resultData);
 
                 // Iterate over each statistic (e.g., "Mean", "Median", etc.)
                 for (var statKey in resultData.result.yAxis) {
