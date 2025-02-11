@@ -145,7 +145,3 @@ To completely remove the application:
    > ./manage-app.sh delete
 
 2. Delete the application directory
-
-
-## Notes:
-- Error: Chart is not defined at createCharts(): Reference Error

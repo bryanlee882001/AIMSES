@@ -18,7 +18,6 @@
         <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
         <script src="{{ url_for('static', filename='libs/chart.min.js') }}"></script>
 
-
         <title>AIMSES</title>
     </head>
     <body>
@@ -33,10 +32,9 @@
         <div class="loadingContainer" id="loadingContainer">
             <div class="loadingPanel">
                 <div class="loader"></div>
-                <h2 id="loading-text">Generating Graph...</h2>
+                <h2 id="loading-text">Generating Graph</h2>
             </div>    
         </div>
-
         
         <!-- Choose Filters -->
         <p style="margin-left: -650px; margin-bottom: -20px; margin-top: 30px; font-weight: 900;">STEP 1: Select Filtering Criteria</p>
@@ -955,9 +953,9 @@
             function createCharts() {
 
                 if (typeof Chart === 'undefined') {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-                    document.head.appendChild(script);
+                    console.error('Chart.js library not loaded');
+                    alert('Error: Chart library failed to load. Please refresh the page.');
+                    return;
                 }
 
                 if (!resultData || !resultData.result || !resultData.result.yAxis) {
@@ -976,10 +974,11 @@
                 }
                 
                 // Early Mission
+                // NOTE: Slicing the first point .slice(1)
                 var mission = inputDict["Mission"][0];
-                var xValues = (mission === "Early Mission") ? earlyMission_xValues :
-                              (mission === "Late Mission") ? lateMission_xValues :
-                              bothMissions_xValues;
+                var xValues = (mission === "Early Mission") ? earlyMission_xValues.slice(1) :
+                              (mission === "Late Mission")  ? lateMission_xValues.slice(1)  :
+                              bothMissions_xValues.slice(1);
 
                 var yValues = [];
                 var allYValues = []; 
@@ -1035,7 +1034,8 @@
                 for (var statKey in resultData.result.yAxis) {
                     if (resultData.result.yAxis.hasOwnProperty(statKey) && propertiesLookup.hasOwnProperty(statKey)) {
                         // Get the statistics object for the current key
-                        var statData = resultData.result.yAxis[statKey];
+                        // NOTE: Slicing the first point .slice(1)
+                        var statData = resultData.result.yAxis[statKey].slice(1);
 
                         // Concatenate all y-axis values
                         allYValues = allYValues.concat(statData); 
@@ -1076,15 +1076,13 @@
                             color: 'rgb(255, 255, 255, 0.4)'
                         },
                         ticks: {
-                            maxTickLimit: 4,
-                            autoSkip: false, 
-                            min: Math.pow(10, Math.floor(Math.log10(minY))),
-                            max: Math.pow(10, Math.ceil(Math.log10(maxY))),
+                            min: 1e4,
+                            max: 1e9,
+                            suggestedMin: 1e4, 
+                            suggestedMax: 1e9, 
                             callback: function(value, index, values) {
 
-                                var labels = [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 
-                                1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 
-                                1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12];
+                                var labels = [1e5, 1e6, 1e7, 1e8, 1e9];
                                 
                                 var formattedValue = labels.find(label => value <= label);
                                 if (formattedValue !== undefined && value === formattedValue) {
@@ -1096,7 +1094,7 @@
                             font : {
                                 size: 13
                             }
-                        }
+                        },
                     },
                     x: {
                         type: 'logarithmic',
@@ -1107,7 +1105,7 @@
                             min: Math.min(...xValues),
                             max: Math.max(...xValues),
                             callback: function(value, index, values) {
-                                var labels = [10, 100, 1000, 10000];
+                                var labels = [1, 10, 100, 1000, 10000];
 
                                 var formattedValue = labels.find(label => value <= label);
                                 if (formattedValue !== undefined && value === formattedValue) {
@@ -1119,6 +1117,47 @@
                             font : {
                                 size: 13
                             }
+                        }, 
+                        afterBuildTicks: function(chart) {
+                            // Determine custom ticks based on mission type
+                            let customTicks = [];
+                            
+                            // Use the mission type from inputDict
+                            var mission = inputDict["Mission"][0];
+                            
+                            if (mission === "Early Mission") {
+                                // Ticks for Early Mission starting from around 5.88
+                                customTicks = [
+                                    5.88, 6, 7, 8, 9, 10,
+                                    20, 30, 40, 50, 60, 70, 80, 90, 100,
+                                    200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                                    2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+                                    20000, 30000
+                                ];
+                            } else if (mission === "Late Mission") {
+                                // Ticks for Late Mission starting from around 3.92
+                                customTicks = [
+                                    3.92, 4, 5, 6, 7, 8, 9, 10,
+                                    20, 30, 40, 50, 60, 70, 80, 90, 100,
+                                    200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                                    2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+                                    20000, 30000
+                                ];
+                            } else {
+                                // Ticks for Both Mission starting from around 6.86
+                                customTicks = [
+                                    6.86, 7, 8, 9, 10,
+                                    20, 30, 40, 50, 60, 70, 80, 90, 100,
+                                    200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                                    2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+                                    20000, 30000
+                                ];
+                            }
+
+                            // Make sure the ticks are assigned properly to chart
+                            chart.ticks = customTicks.map((tickValue) => {
+                                return { value: tickValue, label: tickValue.toString() };
+                            });
                         },
                         title: {
                             display: true,
