@@ -23,11 +23,11 @@ exit /b 1
 echo Building application image...
 echo Platform: %PLATFORM%
 
-docker-compose -f docker-compose.build.yml down
-docker rmi %PROJECT_NAME%-web:latest 2>nul || true
+docker compose -f docker-compose.build.yml down
+docker rmi %PROJECT_NAME%-web:latest 2>nul || exit /b 0
 
 set DOCKER_PLATFORM=%PLATFORM%
-docker-compose -f docker-compose.dev.yml build --no-cache
+docker compose -f docker-compose.dev.yml build --no-cache
 
 echo Image built successfully! Access the website through localhost: 127.0.0.1:5005
 exit /b 0

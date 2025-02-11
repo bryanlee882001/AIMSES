@@ -385,11 +385,11 @@ class QueryBuilder:
         parameters = []
         mech_queries = {
             "QS Only": "(AIMSES_NORM.MECHS = -1)",
-            "QS Dominant": "(AIMSES_NORM.MECHS = -1 OR MECHS = 1)",
+            "QS Dominant": "(AIMSES_NORM.MECHS = -1 OR AIMSES_NORM.MECHS = 1)",
             "Alf Only": "(AIMSES_NORM.MECHS = -2)",
-            "Alf Dominant": "(AIMSES_NORM.MECHS = -2 OR MECHS = 2)",
+            "Alf Dominant": "(AIMSES_NORM.MECHS = -2 OR AIMSES_NORM.MECHS = 2)",
             "WS Only": "(AIMSES_NORM.MECHS = -4)",
-            "WS Dominant": "(AIMSES_NORM.MECHS = -4 OR MECHS = 4)",
+            "WS Dominant": "(AIMSES_NORM.MECHS = -4 OR AIMSES_NORM.MECHS = 4)",
             "QS + Alf": "(AIMSES_NORM.MECHS = 3)",
             "QS + WS": "(AIMSES_NORM.MECHS = 5)",
             "Alf + WS": "(AIMSES_NORM.MECHS = 6)",
