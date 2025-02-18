@@ -145,3 +145,9 @@ To completely remove the application:
    > ./manage-app.sh delete
 
 2. Delete the application directory
+
+## Notes
+
+- Exporting Layers
+- Only click on the 'X' to close AIMSES
+- Export AIMSES_NORM, CDF_DATA, DOWNGOING spectral data for Alberto

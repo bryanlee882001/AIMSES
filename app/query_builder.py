@@ -415,12 +415,13 @@ class QueryBuilder:
         parameters = []
         mission_times = {
             "Early Mission": (843419539, 1023754226),
-            "Late Mission": (1023759079, 1241086949)
+            "Late Mission" : (1023759079, 1241086949)
         }
         
-        if filter_data in mission_times:
-            start_time, end_time = mission_times[filter_data]
-            string_query += "(TIME BETWEEN ? AND ?) AND "
+        mission = filter_data[0]
+        if mission in mission_times:
+            start_time, end_time = mission_times[mission]
+            string_query += "(AIMSES_NORM.TIME BETWEEN ? AND ?) AND "
             parameters.extend([start_time, end_time])
         
         return string_query, parameters
@@ -430,33 +431,47 @@ class QueryBuilder:
         """Creates queries based on user input for mission"""
         parameters = []
         
-        # Compute Early Mission
-        string_query = "SELECT SUM(CASE WHEN (TIME BETWEEN ? AND ?) AND "
-        parameters.extend([843419539, 1023754226])
-        
-        for key, value in self.filter_data.items():  # Use self.filter_data instead
-            if key in self.filter_functions:
-                string_query, params = self.filter_functions[key](string_query, value)
-                parameters.extend(params)
-        
-        if string_query.endswith('AND '):
-            string_query = string_query[:-4]
-        
-        string_query += "THEN 1 ELSE 0 END) AS EARLY_MISSION_COUNT, "
-        
-        # Compute Late Mission
-        string_query += "SUM(CASE WHEN (TIME BETWEEN ? AND ?) AND "
-        parameters.extend([1023759079, 1241086949])
-        
+        # Build the basic WHERE clause for filters
+        filter_conditions = ""
+        filter_params = []
         for key, value in self.filter_data.items():
-            if key in self.filter_functions:
-                string_query, params = self.filter_functions[key](string_query, value)
-                parameters.extend(params)
+            if key in self.filter_functions and key != 'Mission':
+                condition, params = self.filter_functions[key]("", value)
+                if condition.strip():
+                    # Remove the trailing 'AND' if it exists
+                    cleaned_condition = condition.strip()
+                    if cleaned_condition.endswith('AND'):
+                        cleaned_condition = cleaned_condition[:-3].strip()
+                    filter_conditions += cleaned_condition + " AND "
+                    filter_params.extend(params)
         
-        if string_query.endswith('AND '):
-            string_query = string_query[:-4]
+        # Remove trailing 'AND' if it exists
+        if filter_conditions.endswith('AND '):
+            filter_conditions = filter_conditions[:-4]
         
-        string_query += "THEN 1 ELSE 0 END) AS LATE_MISSION_COUNT FROM AIMSES_NORM"
+        # Base query that counts for both mission periods
+        string_query = f"""
+            SELECT 
+                SUM(CASE 
+                    WHEN AIMSES_NORM.TIME BETWEEN ? AND ? AND {filter_conditions}
+                    THEN 1 
+                    ELSE 0 
+                END) AS EARLY_MISSION_COUNT,
+                SUM(CASE 
+                    WHEN AIMSES_NORM.TIME BETWEEN ? AND ? AND {filter_conditions}
+                    THEN 1 
+                    ELSE 0 
+                END) AS LATE_MISSION_COUNT
+            FROM AIMSES_NORM
+            JOIN {self.spectral_table} 
+            ON AIMSES_NORM.ID = {self.spectral_table}.TIME_ID
+        """
+        
+        # Add parameters in correct order
+        parameters.extend([843419539, 1023754226])   # Early mission time range
+        parameters.extend(filter_params)             # Filter params for early mission
+        parameters.extend([1023759079, 1241086949])  # Late mission time range
+        parameters.extend(filter_params)             # Filter params for late mission
         
         return string_query, parameters
 
