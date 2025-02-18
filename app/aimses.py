@@ -77,7 +77,7 @@ class AIMSES:
 
         # Set filters
         self.filters = {k: v for k, v in self.params.items() 
-                       if k not in {'Statistics', 'Spectra', 'Normalization', 'Mission'}}
+                       if k not in {'Statistics', 'Spectra', 'Normalization'}}
 
         # Initialize QueryBuilder
         query_builder = QueryBuilder(spectra_type=self.spectra, 
@@ -126,20 +126,21 @@ class AIMSES:
             elif self.type == 'events':
                 # Execute main query
                 cursor.execute(self.query['sql'], self.query['param'])
-                # Convert to tuples like utility.py does
+                
+                # Convert to tuples
                 spectral_results = [tuple(row) for row in cursor.fetchall()]
 
-                # Execute el_de query
-                cursor.execute(self.query['el_de_sql'], self.query['param'])
-                el_de_results = [tuple(row) for row in cursor.fetchall()]
+                # NOTE: Execute el_de query not needed for now
+                # cursor.execute(self.query['el_de_sql'], self.query['param'])
+                # el_de_results = [tuple(row) for row in cursor.fetchall()]
 
-                if not spectral_results or not el_de_results:
+                if not spectral_results:
                     return False
 
                 # Set final events
                 self.events = {
                     'spectral': spectral_results,
-                    'el_de'   : el_de_results
+                    # 'el_de'   : el_de_results
                 }
                 return True
 
