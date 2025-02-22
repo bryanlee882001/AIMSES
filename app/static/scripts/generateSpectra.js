@@ -588,14 +588,6 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.style.display = "none";
     clearFilters();
   };
-
-  // When the user clicks anywhere outside of the modal, close it
-  // window.onclick = function (event) {
-  //   if (event.target == modal) {
-  //     modal.style.display = "none";
-  //     clearFilters();
-  //   }
-  // };
 });
 
 // Function to open the modal

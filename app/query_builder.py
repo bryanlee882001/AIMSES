@@ -244,7 +244,8 @@ class QueryBuilder:
             if (hemisphere == "Northern Hemisphere" and 0 <= min_range < max_range <= 90) or \
                (hemisphere == "Southern Hemisphere" and -90 <= min_range < max_range <= 0) or \
                (hemisphere == "Either" and 0 <= abs(min_range) < abs(max_range) <= 90):
-                string_query += "(AIMSES_NORM.ILAT BETWEEN ? AND ?) AND "
+                # Capture both positive and negative ILAT values
+                string_query += "(ABS(AIMSES_NORM.ILAT) BETWEEN ? AND ?) AND "
                 parameters.extend([min_range, max_range])
             else:
                 raise ValueError("Invalid range for 'Between' type")
@@ -467,7 +468,7 @@ class QueryBuilder:
             ON AIMSES_NORM.ID = {self.spectral_table}.TIME_ID
         """
         
-        # Add parameters in correct order
+        # Add parameters
         parameters.extend([843419539, 1023754226])   # Early mission time range
         parameters.extend(filter_params)             # Filter params for early mission
         parameters.extend([1023759079, 1241086949])  # Late mission time range
