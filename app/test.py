@@ -12,6 +12,37 @@ class TestSuite:
         print("\n" + "="*50 + "\n")
 
 
+    def execute_raw_query(self, query):
+        """Execute a raw SQL query and return results"""
+        print("Executing Raw Query")
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+
+                # Get both column names and values
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute(query)
+                
+                # Get column names
+                column_names = [description[0] for description in cursor.description]
+                max_col_length = max(len(col) for col in column_names) if column_names else 0
+                
+                # Fetch results
+                results = cursor.fetchall()
+
+                # Print Column names on left
+                print("\nQuery Results:")
+                print("-" * (max_col_length + 25))
+                
+                for row in results:
+                    for i, col_name in enumerate(column_names):
+                        print(f"{col_name.ljust(max_col_length)} | {row[i]}")
+                    print("-" * (max_col_length + 25)) 
+
+        except sqlite3.Error as e:
+            print(f"Query error: {e}")
+
+
     def test_basic_db_connection(self):
         """Test basic database connectivity and simple query"""
         print("Testing Basic Database Connection...")
@@ -240,5 +271,23 @@ if __name__ == "__main__":
         },
     }
     test_suite = TestSuite(params=params)
+
+    # 1. Run all tests
+    # test_suite.run_all_tests()
+
+    # 2. Export spectral data for event validation
     # test_suite.export_spectral_data()
-    test_suite.run_all_tests()
+
+    # 3. Execute Raw Query
+    QUERY = """
+            SELECT *
+            FROM AIMSES_NORM 
+            WHERE (AIMSES_NORM.MLT BETWEEN 22.0 AND 23.0) 
+            AND   (ABS(AIMSES_NORM.ILAT) BETWEEN 69 AND 70) 
+            AND   (AIMSES_NORM.MECHS = -1 OR AIMSES_NORM.MECHS = 1) 
+            AND   (AIMSES_NORM.EFLUX BETWEEN 5 AND 7) 
+            AND   (AIMSES_NORM.TIME BETWEEN 843419539 AND 1023754226)
+            """
+    test_suite.execute_raw_query(QUERY)
+    
+
